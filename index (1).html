@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading...</title>
+</head>
+<body style="font-family: sans-serif; text-align: center; margin-top: 3em;">
+  <p>Loading your activity...</p>
+
+  <script>
+    // ---- EDIT THESE TWO LINES with your actual Google Form links ----
+    const formA = "https://forms.gle/REPLACE_WITH_FORM_1_LINK";
+    const formB = "https://forms.gle/REPLACE_WITH_FORM_2_LINK";
+    // -------------------------------------------------------------
+
+    const chosen = Math.random() < 0.5 ? formA : formB;
+    window.location.href = chosen;
+  </script>
+
+  <noscript>
+    <p>Please enable JavaScript, or use one of these links directly:</p>
+    <p><a href="https://forms.gle/REPLACE_WITH_FORM_1_LINK">Form 1</a></p>
+    <p><a href="https://forms.gle/REPLACE_WITH_FORM_2_LINK">Form 2</a></p>
+  </noscript>
+</body>
+</html>
