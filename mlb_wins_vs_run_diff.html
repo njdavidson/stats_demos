@@ -532,6 +532,14 @@ menuToggle.addEventListener('click', ()=>{
   setMenuOpen(controlsPanel.style.display === 'none');
 });
 
+// tapping/clicking the plot itself closes the menu, so it doesn't
+// keep covering the chart while someone's trying to explore the data
+document.getElementById('chart').addEventListener('click', ()=>{
+  if(controlsPanel.style.display !== 'none'){
+    setMenuOpen(false);
+  }
+});
+
 let currentBucket = layoutBucket();
 let resizeTimer;
 window.addEventListener('resize', ()=>{
