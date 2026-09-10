@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Wins vs. Run Differential — MLB 2021–2025</title>
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <style>
@@ -138,6 +138,7 @@
     accent-color: var(--stitch);
     width:18px; height:18px;
   }
+  .zoom-group{ display:flex; gap:6px; }
   .resetbtn{
     font-family: inherit;
     font-size: 0.86rem;
@@ -151,8 +152,20 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
+  #zoomOutBtn, #zoomInBtn{
+    padding: 8px 16px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    line-height: 1;
+  }
   .resetbtn:hover{ background: var(--cream); }
-  #chart{ width:100%; touch-action: none; }
+  #chart, #chart *{
+    touch-action: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  #chart{ width:100%; overscroll-behavior: contain; }
   .eqbox{
     margin-top: 12px;
     background: #EFF2F6;
@@ -184,8 +197,9 @@
     .ctrl-group{ width: 100%; }
     .spacer-label{ display: none; }
     select#teamSelect{ max-width: none; width: 100%; }
-    .checkline, .resetbtn{ width: 100%; }
-    .resetbtn{ text-align: center; }
+    .checkline{ width: 100%; }
+    .zoom-group{ width: 100%; }
+    #resetBtn{ flex: 1; text-align: center; }
   }
   @media (max-width: 480px){
     .panel{ padding: 10px 8px 10px; }
@@ -201,7 +215,7 @@
 <body>
 <div class="wrap">
   <h1>Wins vs. Run Differential</h1>
-  <p class="subtitle">Every MLB team-season, 2021 to 2025 (150 points total; 2020 excluded). Hover or tap a point for the team, season, run differential, and win total. Pinch or scroll to zoom in on the chart; use Reset view to zoom back out.</p>
+  <p class="subtitle">Every MLB team-season, 2021 to 2025 (150 points total; 2020 excluded). Hover or tap a point for the team, season, run differential, and win total. Use the Zoom buttons to zoom in or out, drag to pan, or tap Reset view to return to the full chart.</p>
 
   <div class="panel">
     <div class="floating-controls" id="floatingControls">
@@ -226,8 +240,12 @@
         </div>
       </div>
       <div class="ctrl-group">
-        <div class="group-label spacer-label">&nbsp;</div>
-        <button class="resetbtn" id="resetBtn" type="button">Reset view</button>
+        <div class="group-label">Zoom</div>
+        <div class="zoom-group">
+          <button class="resetbtn" id="zoomOutBtn" type="button" aria-label="Zoom out">&minus;</button>
+          <button class="resetbtn" id="zoomInBtn" type="button" aria-label="Zoom in">+</button>
+          <button class="resetbtn" id="resetBtn" type="button">Reset view</button>
+        </div>
       </div>
       </div>
     </div>
@@ -426,11 +444,18 @@ function baseLayout(){
   };
 }
 
+function layoutBucket(){
+  const w = window.innerWidth;
+  if (w < 480) return 'small';
+  if (w < 700) return 'medium';
+  return 'large';
+}
+
 function render(){
   Plotly.react('chart', buildTraces(), baseLayout(), {
     displayModeBar:false,
     responsive:true,
-    scrollZoom:true
+    scrollZoom:false
   });
 }
 
@@ -466,6 +491,23 @@ document.getElementById('resetBtn').addEventListener('click', ()=>{
   Plotly.relayout('chart', {'xaxis.autorange':true, 'yaxis.autorange':true});
 });
 
+function zoomBy(factor){
+  const gd = document.getElementById('chart');
+  const fl = gd._fullLayout;
+  if(!fl) return;
+  const xr = fl.xaxis.range, yr = fl.yaxis.range;
+  const xMid = (xr[0]+xr[1])/2, xHalf = (xr[1]-xr[0])/2*factor;
+  const yMid = (yr[0]+yr[1])/2, yHalf = (yr[1]-yr[0])/2*factor;
+  Plotly.relayout(gd, {
+    'xaxis.range': [xMid-xHalf, xMid+xHalf],
+    'xaxis.autorange': false,
+    'yaxis.range': [yMid-yHalf, yMid+yHalf],
+    'yaxis.autorange': false
+  });
+}
+document.getElementById('zoomInBtn').addEventListener('click', ()=> zoomBy(0.7));
+document.getElementById('zoomOutBtn').addEventListener('click', ()=> zoomBy(1/0.7));
+
 const menuToggle = document.getElementById('menuToggle');
 const controlsPanel = document.getElementById('controlsPanel');
 const menuToggleLabel = document.getElementById('menuToggleLabel');
@@ -479,10 +521,22 @@ menuToggle.addEventListener('click', ()=>{
   setMenuOpen(controlsPanel.style.display === 'none');
 });
 
+let currentBucket = layoutBucket();
 let resizeTimer;
 window.addEventListener('resize', ()=>{
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(render, 150);
+  resizeTimer = setTimeout(()=>{
+    const newBucket = layoutBucket();
+    if(newBucket !== currentBucket){
+      // real layout change (rotation, resizing the window) -- safe to rebuild
+      currentBucket = newBucket;
+      render();
+    } else {
+      // just a viewport wobble (mobile browser chrome collapsing during
+      // scroll/pinch) -- reflow in place without resetting zoom/traces
+      Plotly.Plots.resize('chart');
+    }
+  }, 150);
 });
 
 render();
