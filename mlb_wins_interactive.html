@@ -138,27 +138,40 @@
     accent-color: var(--stitch);
     width:18px; height:18px;
   }
-  .zoom-group{ display:flex; gap:6px; }
-  .resetbtn{
-    font-family: inherit;
-    font-size: 0.86rem;
-    font-weight: 600;
-    color: var(--ink);
-    background: #fff;
-    border: 1px solid var(--rule);
-    border-radius: 999px;
-    padding: 8px 14px;
-    min-height: 38px;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
+  .chart-wrap{ position: relative; }
+  .zoom-float{
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 15;
+    display: flex;
+    gap: 6px;
   }
-  #zoomOutBtn, #zoomInBtn{
-    padding: 8px 16px;
-    font-size: 1.1rem;
+  .zoombtn{
+    font-family: inherit;
+    font-size: 1.05rem;
     font-weight: 700;
     line-height: 1;
+    color: var(--navy);
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(28,37,48,0.12);
+    -webkit-tap-highlight-color: transparent;
   }
-  .resetbtn:hover{ background: var(--cream); }
+  .zoombtn:hover{ background: #fff; }
+  .zoombtn-reset{
+    width: auto;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 0 12px;
+  }
   #chart, #chart *{
     touch-action: none;
     -webkit-user-select: none;
@@ -198,8 +211,6 @@
     .spacer-label{ display: none; }
     select#teamSelect{ max-width: none; width: 100%; }
     .checkline{ width: 100%; }
-    .zoom-group{ width: 100%; }
-    #resetBtn{ flex: 1; text-align: center; }
   }
   @media (max-width: 480px){
     .panel{ padding: 10px 8px 10px; }
@@ -207,7 +218,8 @@
     .year-toggle button{ font-size:0.82rem; padding:6px 9px; min-height:34px; }
     select#teamSelect{ font-size:0.82rem; padding:8px 30px 8px 10px; min-height:38px; }
     .checkline{ font-size:0.82rem; min-height:34px; }
-    .resetbtn{ font-size:0.82rem; padding:8px 10px; min-height:38px; }
+    .zoombtn{ width:32px; height:32px; font-size:0.95rem; }
+    .zoombtn-reset{ font-size:0.72rem; padding:0 10px; }
     .group-label{ font-size:0.76rem; }
   }
 </style>
@@ -239,17 +251,16 @@
           <label for="lineToggle">Regression line</label>
         </div>
       </div>
-      <div class="ctrl-group">
-        <div class="group-label">Zoom</div>
-        <div class="zoom-group">
-          <button class="resetbtn" id="zoomOutBtn" type="button" aria-label="Zoom out">&minus;</button>
-          <button class="resetbtn" id="zoomInBtn" type="button" aria-label="Zoom in">+</button>
-          <button class="resetbtn" id="resetBtn" type="button">Reset view</button>
-        </div>
-      </div>
       </div>
     </div>
-    <div id="chart"></div>
+    <div class="chart-wrap">
+      <div class="zoom-float">
+        <button class="zoombtn" id="zoomOutBtn" type="button" aria-label="Zoom out">&minus;</button>
+        <button class="zoombtn" id="zoomInBtn" type="button" aria-label="Zoom in">+</button>
+        <button class="zoombtn zoombtn-reset" id="resetBtn" type="button">Reset</button>
+      </div>
+      <div id="chart"></div>
+    </div>
     <div class="eqbox">
       <div class="eq" id="eqLabel"></div>
       <div class="stats" id="statsLabel"></div>
