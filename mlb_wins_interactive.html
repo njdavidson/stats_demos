@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Wins vs. Run Differential — MLB 2021–2025</title>
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+  :root{
+    --cream:#F7F5EF;
+    --ink:#1C2530;
+    --navy:#2C4165;
+    --rule:#D8D4C8;
+    --stitch:#A6362B;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--cream);
+    color:var(--ink);
+    font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+    padding: clamp(14px, 4vw, 28px) clamp(12px, 4vw, 20px) 50px;
+  }
+  .wrap{max-width:980px;margin:0 auto;}
+  h1{
+    font-size: clamp(1.35rem, 4.5vw, 1.8rem);
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+    color: var(--navy);
+  }
+  .subtitle{
+    font-size: clamp(0.98rem, 2.6vw, 1.08rem);
+    color: #55606C;
+    margin: 0 0 18px;
+    max-width: 62ch;
+    line-height: 1.5;
+  }
+  .panel{
+    background: #FFFFFF;
+    border: 1px solid var(--rule);
+    border-radius: 8px;
+    padding: 16px 14px 14px;
+  }
+  .controls{
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    gap: 12px 18px;
+    padding: 2px 2px 14px;
+    border-bottom: 1px solid var(--rule);
+    margin-bottom: 12px;
+  }
+  .controls .group-label{
+    font-size:0.86rem;
+    color:#6B7683;
+    margin-bottom: 6px;
+  }
+  .year-toggle{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .year-toggle button{
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 600;
+    border: 2px solid var(--navy);
+    background: #fff;
+    color: var(--navy);
+    padding: 9px 14px;
+    min-height: 40px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background .12s ease, color .12s ease, opacity .12s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .year-toggle button.active{
+    color: #fff;
+  }
+  .year-toggle button.inactive{
+    opacity: 0.45;
+  }
+  .checkline{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:1rem;
+    color: var(--ink);
+    min-height: 40px;
+  }
+  .checkline input{
+    accent-color: var(--stitch);
+    width:18px; height:18px;
+  }
+  #chart{ width:100%; }
+  .eqbox{
+    margin-top: 14px;
+    background: #EFF2F6;
+    border: 1px solid var(--rule);
+    border-radius: 6px;
+    padding: 12px 16px;
+    display:flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    align-items:baseline;
+  }
+  .eqbox .eq{
+    font-size: clamp(1.1rem, 3.6vw, 1.3rem);
+    font-weight: 700;
+    color: var(--navy);
+    white-space: nowrap;
+  }
+  .eqbox .stats{
+    font-size: clamp(0.92rem, 2.8vw, 1.02rem);
+    color: #55606C;
+  }
+  .hint{
+    font-size:0.88rem;
+    color:#7A8390;
+    margin-top: 12px;
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Wins vs. Run Differential</h1>
+  <p class="subtitle">Every MLB team-season, 2021 to 2025 (150 points total; 2020 excluded). Hover or tap a point for the team, season, run differential, and win total. Use the buttons below to show or hide a season.</p>
+
+  <div class="panel">
+    <div class="controls">
+      <div>
+        <div class="group-label">Season</div>
+        <div class="year-toggle" id="yearToggle"></div>
+      </div>
+      <div class="checkline">
+        <input type="checkbox" id="lineToggle" checked>
+        <label for="lineToggle">Show regression line</label>
+      </div>
+    </div>
+    <div id="chart"></div>
+    <div class="eqbox">
+      <div class="eq" id="eqLabel"></div>
+      <div class="stats" id="statsLabel"></div>
+    </div>
+    <p class="hint">Run differential = runs scored minus runs allowed for the season.</p>
+  </div>
+</div>
+
+<script>
+const DATA = [{"team": "Chicago White Sox", "year": 2021, "rd": 160, "wins": 93, "losses": 69, "rs": 796, "ra": 636}, {"team": "Cleveland Indians", "year": 2021, "rd": -10, "wins": 80, "losses": 82, "rs": 717, "ra": 727}, {"team": "Detroit Tigers", "year": 2021, "rd": -59, "wins": 77, "losses": 85, "rs": 697, "ra": 756}, {"team": "Kansas City Royals", "year": 2021, "rd": -102, "wins": 74, "losses": 88, "rs": 686, "ra": 788}, {"team": "Minnesota Twins", "year": 2021, "rd": -105, "wins": 73, "losses": 89, "rs": 729, "ra": 834}, {"team": "Tampa Bay Rays", "year": 2021, "rd": 206, "wins": 100, "losses": 62, "rs": 857, "ra": 651}, {"team": "Boston Red Sox", "year": 2021, "rd": 80, "wins": 92, "losses": 70, "rs": 829, "ra": 749}, {"team": "New York Yankees", "year": 2021, "rd": 42, "wins": 92, "losses": 70, "rs": 711, "ra": 669}, {"team": "Toronto Blue Jays", "year": 2021, "rd": 183, "wins": 91, "losses": 71, "rs": 846, "ra": 663}, {"team": "Baltimore Orioles", "year": 2021, "rd": -297, "wins": 52, "losses": 110, "rs": 659, "ra": 956}, {"team": "Houston Astros", "year": 2021, "rd": 205, "wins": 95, "losses": 67, "rs": 863, "ra": 658}, {"team": "Seattle Mariners", "year": 2021, "rd": -51, "wins": 90, "losses": 72, "rs": 697, "ra": 748}, {"team": "Oakland Athletics", "year": 2021, "rd": 56, "wins": 86, "losses": 76, "rs": 743, "ra": 687}, {"team": "Los Angeles Angels", "year": 2021, "rd": -81, "wins": 77, "losses": 85, "rs": 723, "ra": 804}, {"team": "Texas Rangers", "year": 2021, "rd": -190, "wins": 60, "losses": 102, "rs": 625, "ra": 815}, {"team": "Milwaukee Brewers", "year": 2021, "rd": 115, "wins": 95, "losses": 67, "rs": 738, "ra": 623}, {"team": "St. Louis Cardinals", "year": 2021, "rd": 34, "wins": 90, "losses": 72, "rs": 706, "ra": 672}, {"team": "Cincinnati Reds", "year": 2021, "rd": 26, "wins": 83, "losses": 79, "rs": 786, "ra": 760}, {"team": "Chicago Cubs", "year": 2021, "rd": -134, "wins": 71, "losses": 91, "rs": 705, "ra": 839}, {"team": "Pittsburgh Pirates", "year": 2021, "rd": -224, "wins": 61, "losses": 101, "rs": 609, "ra": 833}, {"team": "Atlanta Braves", "year": 2021, "rd": 134, "wins": 88, "losses": 73, "rs": 790, "ra": 656}, {"team": "Philadelphia Phillies", "year": 2021, "rd": -11, "wins": 82, "losses": 80, "rs": 734, "ra": 745}, {"team": "New York Mets", "year": 2021, "rd": -32, "wins": 77, "losses": 85, "rs": 636, "ra": 668}, {"team": "Miami Marlins", "year": 2021, "rd": -78, "wins": 67, "losses": 95, "rs": 623, "ra": 701}, {"team": "Washington Nationals", "year": 2021, "rd": -96, "wins": 65, "losses": 97, "rs": 724, "ra": 820}, {"team": "San Francisco Giants", "year": 2021, "rd": 210, "wins": 107, "losses": 55, "rs": 804, "ra": 594}, {"team": "Los Angeles Dodgers", "year": 2021, "rd": 269, "wins": 106, "losses": 56, "rs": 830, "ra": 561}, {"team": "San Diego Padres", "year": 2021, "rd": 21, "wins": 79, "losses": 83, "rs": 729, "ra": 708}, {"team": "Colorado Rockies", "year": 2021, "rd": -57, "wins": 74, "losses": 87, "rs": 739, "ra": 796}, {"team": "Arizona Diamondbacks", "year": 2021, "rd": -214, "wins": 52, "losses": 110, "rs": 679, "ra": 893}, {"team": "Cleveland Guardians", "year": 2022, "rd": 64, "wins": 92, "losses": 70, "rs": 698, "ra": 634}, {"team": "Chicago White Sox", "year": 2022, "rd": -31, "wins": 81, "losses": 81, "rs": 686, "ra": 717}, {"team": "Minnesota Twins", "year": 2022, "rd": 12, "wins": 78, "losses": 84, "rs": 696, "ra": 684}, {"team": "Detroit Tigers", "year": 2022, "rd": -156, "wins": 66, "losses": 96, "rs": 557, "ra": 713}, {"team": "Kansas City Royals", "year": 2022, "rd": -170, "wins": 65, "losses": 97, "rs": 640, "ra": 810}, {"team": "New York Yankees", "year": 2022, "rd": 240, "wins": 99, "losses": 63, "rs": 807, "ra": 567}, {"team": "Tampa Bay Rays", "year": 2022, "rd": 52, "wins": 86, "losses": 76, "rs": 666, "ra": 614}, {"team": "Toronto Blue Jays", "year": 2022, "rd": 96, "wins": 92, "losses": 70, "rs": 775, "ra": 679}, {"team": "Baltimore Orioles", "year": 2022, "rd": -14, "wins": 83, "losses": 79, "rs": 674, "ra": 688}, {"team": "Boston Red Sox", "year": 2022, "rd": -52, "wins": 78, "losses": 84, "rs": 735, "ra": 787}, {"team": "Houston Astros", "year": 2022, "rd": 219, "wins": 106, "losses": 56, "rs": 737, "ra": 518}, {"team": "Seattle Mariners", "year": 2022, "rd": 67, "wins": 90, "losses": 72, "rs": 690, "ra": 623}, {"team": "Los Angeles Angels", "year": 2022, "rd": -45, "wins": 73, "losses": 89, "rs": 623, "ra": 668}, {"team": "Texas Rangers", "year": 2022, "rd": -36, "wins": 68, "losses": 94, "rs": 707, "ra": 743}, {"team": "Oakland Athletics", "year": 2022, "rd": -202, "wins": 60, "losses": 102, "rs": 568, "ra": 770}, {"team": "St. Louis Cardinals", "year": 2022, "rd": 135, "wins": 93, "losses": 69, "rs": 772, "ra": 637}, {"team": "Milwaukee Brewers", "year": 2022, "rd": 37, "wins": 86, "losses": 76, "rs": 725, "ra": 688}, {"team": "Chicago Cubs", "year": 2022, "rd": -74, "wins": 74, "losses": 88, "rs": 657, "ra": 731}, {"team": "Cincinnati Reds", "year": 2022, "rd": -167, "wins": 62, "losses": 100, "rs": 648, "ra": 815}, {"team": "Pittsburgh Pirates", "year": 2022, "rd": -226, "wins": 62, "losses": 100, "rs": 591, "ra": 817}, {"team": "Atlanta Braves", "year": 2022, "rd": 180, "wins": 101, "losses": 61, "rs": 789, "ra": 609}, {"team": "New York Mets", "year": 2022, "rd": 166, "wins": 101, "losses": 61, "rs": 772, "ra": 606}, {"team": "Philadelphia Phillies", "year": 2022, "rd": 62, "wins": 87, "losses": 75, "rs": 747, "ra": 685}, {"team": "Miami Marlins", "year": 2022, "rd": -90, "wins": 69, "losses": 93, "rs": 586, "ra": 676}, {"team": "Washington Nationals", "year": 2022, "rd": -252, "wins": 55, "losses": 107, "rs": 603, "ra": 855}, {"team": "Los Angeles Dodgers", "year": 2022, "rd": 334, "wins": 111, "losses": 51, "rs": 847, "ra": 513}, {"team": "San Diego Padres", "year": 2022, "rd": 45, "wins": 89, "losses": 73, "rs": 705, "ra": 660}, {"team": "San Francisco Giants", "year": 2022, "rd": 19, "wins": 81, "losses": 81, "rs": 716, "ra": 697}, {"team": "Arizona Diamondbacks", "year": 2022, "rd": -38, "wins": 74, "losses": 88, "rs": 702, "ra": 740}, {"team": "Colorado Rockies", "year": 2022, "rd": -175, "wins": 68, "losses": 94, "rs": 698, "ra": 873}, {"team": "Minnesota Twins", "year": 2023, "rd": 119, "wins": 87, "losses": 75, "rs": 778, "ra": 659}, {"team": "Detroit Tigers", "year": 2023, "rd": -79, "wins": 78, "losses": 84, "rs": 661, "ra": 740}, {"team": "Cleveland Guardians", "year": 2023, "rd": -35, "wins": 76, "losses": 86, "rs": 662, "ra": 697}, {"team": "Chicago White Sox", "year": 2023, "rd": -200, "wins": 61, "losses": 101, "rs": 641, "ra": 841}, {"team": "Kansas City Royals", "year": 2023, "rd": -183, "wins": 56, "losses": 106, "rs": 676, "ra": 859}, {"team": "Baltimore Orioles", "year": 2023, "rd": 129, "wins": 101, "losses": 61, "rs": 807, "ra": 678}, {"team": "Tampa Bay Rays", "year": 2023, "rd": 195, "wins": 99, "losses": 63, "rs": 860, "ra": 665}, {"team": "Toronto Blue Jays", "year": 2023, "rd": 75, "wins": 89, "losses": 73, "rs": 746, "ra": 671}, {"team": "New York Yankees", "year": 2023, "rd": -25, "wins": 82, "losses": 80, "rs": 673, "ra": 698}, {"team": "Boston Red Sox", "year": 2023, "rd": -4, "wins": 78, "losses": 84, "rs": 772, "ra": 776}, {"team": "Houston Astros", "year": 2023, "rd": 129, "wins": 90, "losses": 72, "rs": 827, "ra": 698}, {"team": "Texas Rangers", "year": 2023, "rd": 165, "wins": 90, "losses": 72, "rs": 881, "ra": 716}, {"team": "Seattle Mariners", "year": 2023, "rd": 99, "wins": 88, "losses": 74, "rs": 758, "ra": 659}, {"team": "Los Angeles Angels", "year": 2023, "rd": -90, "wins": 73, "losses": 89, "rs": 739, "ra": 829}, {"team": "Oakland Athletics", "year": 2023, "rd": -339, "wins": 50, "losses": 112, "rs": 585, "ra": 924}, {"team": "Milwaukee Brewers", "year": 2023, "rd": 81, "wins": 92, "losses": 70, "rs": 728, "ra": 647}, {"team": "Chicago Cubs", "year": 2023, "rd": 96, "wins": 83, "losses": 79, "rs": 819, "ra": 723}, {"team": "Cincinnati Reds", "year": 2023, "rd": -38, "wins": 82, "losses": 80, "rs": 783, "ra": 821}, {"team": "Pittsburgh Pirates", "year": 2023, "rd": -98, "wins": 76, "losses": 86, "rs": 692, "ra": 790}, {"team": "St. Louis Cardinals", "year": 2023, "rd": -110, "wins": 71, "losses": 91, "rs": 719, "ra": 829}, {"team": "Atlanta Braves", "year": 2023, "rd": 231, "wins": 104, "losses": 58, "rs": 947, "ra": 716}, {"team": "Philadelphia Phillies", "year": 2023, "rd": 81, "wins": 90, "losses": 72, "rs": 796, "ra": 715}, {"team": "Miami Marlins", "year": 2023, "rd": -57, "wins": 84, "losses": 78, "rs": 666, "ra": 723}, {"team": "New York Mets", "year": 2023, "rd": -12, "wins": 75, "losses": 87, "rs": 717, "ra": 729}, {"team": "Washington Nationals", "year": 2023, "rd": -145, "wins": 71, "losses": 91, "rs": 700, "ra": 845}, {"team": "Los Angeles Dodgers", "year": 2023, "rd": 207, "wins": 100, "losses": 62, "rs": 906, "ra": 699}, {"team": "Arizona Diamondbacks", "year": 2023, "rd": -15, "wins": 84, "losses": 78, "rs": 746, "ra": 761}, {"team": "San Diego Padres", "year": 2023, "rd": 104, "wins": 82, "losses": 80, "rs": 752, "ra": 648}, {"team": "San Francisco Giants", "year": 2023, "rd": -45, "wins": 79, "losses": 83, "rs": 674, "ra": 719}, {"team": "Colorado Rockies", "year": 2023, "rd": -236, "wins": 59, "losses": 103, "rs": 721, "ra": 957}, {"team": "Cleveland Guardians", "year": 2024, "rd": 87, "wins": 92, "losses": 69, "rs": 708, "ra": 621}, {"team": "Kansas City Royals", "year": 2024, "rd": 91, "wins": 86, "losses": 76, "rs": 735, "ra": 644}, {"team": "Detroit Tigers", "year": 2024, "rd": 40, "wins": 86, "losses": 76, "rs": 682, "ra": 642}, {"team": "Minnesota Twins", "year": 2024, "rd": 7, "wins": 82, "losses": 80, "rs": 742, "ra": 735}, {"team": "Chicago White Sox", "year": 2024, "rd": -306, "wins": 41, "losses": 121, "rs": 507, "ra": 813}, {"team": "New York Yankees", "year": 2024, "rd": 147, "wins": 94, "losses": 68, "rs": 815, "ra": 668}, {"team": "Baltimore Orioles", "year": 2024, "rd": 87, "wins": 91, "losses": 71, "rs": 786, "ra": 699}, {"team": "Boston Red Sox", "year": 2024, "rd": 4, "wins": 81, "losses": 81, "rs": 751, "ra": 747}, {"team": "Tampa Bay Rays", "year": 2024, "rd": -59, "wins": 80, "losses": 82, "rs": 604, "ra": 663}, {"team": "Toronto Blue Jays", "year": 2024, "rd": -72, "wins": 74, "losses": 88, "rs": 671, "ra": 743}, {"team": "Houston Astros", "year": 2024, "rd": 91, "wins": 88, "losses": 73, "rs": 740, "ra": 649}, {"team": "Seattle Mariners", "year": 2024, "rd": 69, "wins": 85, "losses": 77, "rs": 676, "ra": 607}, {"team": "Texas Rangers", "year": 2024, "rd": -55, "wins": 78, "losses": 84, "rs": 683, "ra": 738}, {"team": "Oakland Athletics", "year": 2024, "rd": -121, "wins": 69, "losses": 93, "rs": 643, "ra": 764}, {"team": "Los Angeles Angels", "year": 2024, "rd": -162, "wins": 63, "losses": 99, "rs": 635, "ra": 797}, {"team": "Milwaukee Brewers", "year": 2024, "rd": 136, "wins": 93, "losses": 69, "rs": 777, "ra": 641}, {"team": "St. Louis Cardinals", "year": 2024, "rd": -47, "wins": 83, "losses": 79, "rs": 672, "ra": 719}, {"team": "Chicago Cubs", "year": 2024, "rd": 67, "wins": 83, "losses": 79, "rs": 736, "ra": 669}, {"team": "Cincinnati Reds", "year": 2024, "rd": 5, "wins": 77, "losses": 85, "rs": 699, "ra": 694}, {"team": "Pittsburgh Pirates", "year": 2024, "rd": -74, "wins": 76, "losses": 86, "rs": 665, "ra": 739}, {"team": "Philadelphia Phillies", "year": 2024, "rd": 113, "wins": 95, "losses": 67, "rs": 784, "ra": 671}, {"team": "Atlanta Braves", "year": 2024, "rd": 97, "wins": 89, "losses": 73, "rs": 704, "ra": 607}, {"team": "New York Mets", "year": 2024, "rd": 71, "wins": 89, "losses": 73, "rs": 768, "ra": 697}, {"team": "Washington Nationals", "year": 2024, "rd": -104, "wins": 71, "losses": 91, "rs": 660, "ra": 764}, {"team": "Miami Marlins", "year": 2024, "rd": -204, "wins": 62, "losses": 100, "rs": 637, "ra": 841}, {"team": "Los Angeles Dodgers", "year": 2024, "rd": 156, "wins": 98, "losses": 64, "rs": 842, "ra": 686}, {"team": "San Diego Padres", "year": 2024, "rd": 91, "wins": 93, "losses": 69, "rs": 760, "ra": 669}, {"team": "Arizona Diamondbacks", "year": 2024, "rd": 98, "wins": 89, "losses": 73, "rs": 886, "ra": 788}, {"team": "San Francisco Giants", "year": 2024, "rd": -6, "wins": 80, "losses": 82, "rs": 693, "ra": 699}, {"team": "Colorado Rockies", "year": 2024, "rd": -247, "wins": 61, "losses": 101, "rs": 682, "ra": 929}, {"team": "Cleveland Guardians", "year": 2025, "rd": -6, "wins": 88, "losses": 74, "rs": 643, "ra": 649}, {"team": "Detroit Tigers", "year": 2025, "rd": 67, "wins": 87, "losses": 75, "rs": 758, "ra": 691}, {"team": "Kansas City Royals", "year": 2025, "rd": 14, "wins": 82, "losses": 80, "rs": 651, "ra": 637}, {"team": "Minnesota Twins", "year": 2025, "rd": -95, "wins": 70, "losses": 92, "rs": 678, "ra": 773}, {"team": "Chicago White Sox", "year": 2025, "rd": -95, "wins": 60, "losses": 102, "rs": 647, "ra": 742}, {"team": "Toronto Blue Jays", "year": 2025, "rd": 77, "wins": 94, "losses": 68, "rs": 798, "ra": 721}, {"team": "New York Yankees", "year": 2025, "rd": 164, "wins": 94, "losses": 68, "rs": 849, "ra": 685}, {"team": "Boston Red Sox", "year": 2025, "rd": 110, "wins": 89, "losses": 73, "rs": 786, "ra": 676}, {"team": "Tampa Bay Rays", "year": 2025, "rd": 31, "wins": 77, "losses": 85, "rs": 714, "ra": 683}, {"team": "Baltimore Orioles", "year": 2025, "rd": -111, "wins": 75, "losses": 87, "rs": 677, "ra": 788}, {"team": "Seattle Mariners", "year": 2025, "rd": 72, "wins": 90, "losses": 72, "rs": 766, "ra": 694}, {"team": "Houston Astros", "year": 2025, "rd": 21, "wins": 87, "losses": 75, "rs": 686, "ra": 665}, {"team": "Texas Rangers", "year": 2025, "rd": 79, "wins": 81, "losses": 81, "rs": 684, "ra": 605}, {"team": "Athletics", "year": 2025, "rd": -84, "wins": 76, "losses": 86, "rs": 733, "ra": 817}, {"team": "Los Angeles Angels", "year": 2025, "rd": -164, "wins": 72, "losses": 90, "rs": 673, "ra": 837}, {"team": "Milwaukee Brewers", "year": 2025, "rd": 172, "wins": 97, "losses": 65, "rs": 806, "ra": 634}, {"team": "Chicago Cubs", "year": 2025, "rd": 144, "wins": 92, "losses": 70, "rs": 793, "ra": 649}, {"team": "Cincinnati Reds", "year": 2025, "rd": 35, "wins": 83, "losses": 79, "rs": 716, "ra": 681}, {"team": "St. Louis Cardinals", "year": 2025, "rd": -65, "wins": 78, "losses": 84, "rs": 689, "ra": 754}, {"team": "Pittsburgh Pirates", "year": 2025, "rd": -62, "wins": 71, "losses": 91, "rs": 583, "ra": 645}, {"team": "Philadelphia Phillies", "year": 2025, "rd": 130, "wins": 96, "losses": 66, "rs": 778, "ra": 648}, {"team": "New York Mets", "year": 2025, "rd": 51, "wins": 83, "losses": 79, "rs": 766, "ra": 715}, {"team": "Miami Marlins", "year": 2025, "rd": -89, "wins": 79, "losses": 83, "rs": 709, "ra": 798}, {"team": "Atlanta Braves", "year": 2025, "rd": -10, "wins": 76, "losses": 86, "rs": 724, "ra": 734}, {"team": "Washington Nationals", "year": 2025, "rd": -212, "wins": 66, "losses": 96, "rs": 687, "ra": 899}, {"team": "Los Angeles Dodgers", "year": 2025, "rd": 142, "wins": 93, "losses": 69, "rs": 825, "ra": 683}, {"team": "San Diego Padres", "year": 2025, "rd": 81, "wins": 90, "losses": 72, "rs": 702, "ra": 621}, {"team": "San Francisco Giants", "year": 2025, "rd": 21, "wins": 81, "losses": 81, "rs": 705, "ra": 684}, {"team": "Arizona Diamondbacks", "year": 2025, "rd": 6, "wins": 80, "losses": 82, "rs": 791, "ra": 785}, {"team": "Colorado Rockies", "year": 2025, "rd": -424, "wins": 43, "losses": 119, "rs": 597, "ra": 1021}];
+
+const years = [2021,2022,2023,2024,2025];
+const yearColors = {
+  2021: "#7FA0C4",
+  2022: "#4A7398",
+  2023: "#2C4165",
+  2024: "#A6362B",
+  2025: "#D98E3B"
+};
+
+function linreg(pts){
+  const n = pts.length;
+  let sx=0, sy=0, sxy=0, sxx=0;
+  pts.forEach(p=>{ sx+=p.rd; sy+=p.wins; sxy+=p.rd*p.wins; sxx+=p.rd*p.rd; });
+  const slope = (n*sxy - sx*sy) / (n*sxx - sx*sx);
+  const intercept = (sy - slope*sx)/n;
+  return {slope, intercept};
+}
+function corr(pts){
+  const n = pts.length;
+  let sx=0, sy=0, sxy=0, sxx=0, syy=0;
+  pts.forEach(p=>{
+    sx+=p.rd; sy+=p.wins; sxy+=p.rd*p.wins; sxx+=p.rd*p.rd; syy+=p.wins*p.wins;
+  });
+  const num = n*sxy - sx*sy;
+  const den = Math.sqrt((n*sxx-sx*sx)*(n*syy-sy*sy));
+  return num/den;
+}
+const reg = linreg(DATA);
+document.getElementById('eqLabel').textContent =
+  "Predicted Wins = " + reg.slope.toFixed(4) + " \u00D7 RD + " + reg.intercept.toFixed(2);
+document.getElementById('statsLabel').textContent =
+  "r = " + corr(DATA).toFixed(3) + "   |   n = " + DATA.length + " team-seasons";
+
+let activeYears = new Set(years);
+
+function buildTraces(){
+  const traces = [];
+  years.forEach(y=>{
+    if(!activeYears.has(y)) return;
+    const pts = DATA.filter(d=>d.year===y);
+    traces.push({
+      x: pts.map(p=>p.rd),
+      y: pts.map(p=>p.wins),
+      customdata: pts.map(p=>[p.team, p.year, p.rd, p.wins, p.losses, p.rs, p.ra]),
+      mode: 'markers',
+      type: 'scatter',
+      name: String(y),
+      showlegend: false,
+      marker: { color: yearColors[y], size: 9, line:{width:0.5,color:'#1C2530'} },
+      hovertemplate:
+        "<b>%{customdata[0]}</b> (%{customdata[1]})<br>" +
+        "Run differential: %{customdata[2]:+d}<br>" +
+        "Wins: %{customdata[3]}  (Losses: %{customdata[4]})<br>" +
+        "Runs scored: %{customdata[5]}   Runs allowed: %{customdata[6]}" +
+        "<extra></extra>"
+    });
+  });
+
+  if(document.getElementById('lineToggle').checked){
+    const xs = DATA.map(d=>d.rd);
+    const xmin = Math.min(...xs)-15, xmax = Math.max(...xs)+15;
+    traces.push({
+      x:[xmin, xmax],
+      y:[reg.slope*xmin+reg.intercept, reg.slope*xmax+reg.intercept],
+      mode:'lines', type:'scatter',
+      name:'Regression line',
+      showlegend:false,
+      line:{color:'#A6362B', width:2.5},
+      hoverinfo:'skip'
+    });
+  }
+  return traces;
+}
+
+function chartHeight(){
+  const w = window.innerWidth;
+  if (w < 480) return 340;
+  if (w < 700) return 420;
+  return 520;
+}
+
+function tickSpacing(){
+  const w = window.innerWidth;
+  if (w < 480) return { x:100, y:10 };
+  return { x:50, y:5 };
+}
+
+function baseLayout(){
+  const ticks = tickSpacing();
+  return {
+    margin:{l:50,r:16,t:10,b:44},
+    height: chartHeight(),
+    xaxis:{
+      title:{text:'Run Differential (Runs Scored \u2212 Runs Allowed)', font:{size:14}},
+      zeroline:true, zerolinecolor:'#C7C2B4',
+      dtick:ticks.x,
+      gridcolor:'#EAE7DE',
+      gridwidth:1,
+      tickfont:{size:12},
+      fixedrange:true
+    },
+    yaxis:{
+      title:{text:'Wins', font:{size:14}},
+      dtick:ticks.y,
+      gridcolor:'#EAE7DE',
+      gridwidth:1,
+      tickfont:{size:12},
+      fixedrange:true
+    },
+    plot_bgcolor:'#FFFFFF',
+    paper_bgcolor:'#FFFFFF',
+    showlegend:false,
+    hoverlabel:{ bgcolor:'#1C2530', font:{color:'#F7F5EF', size:13}, align:'left' },
+    font:{family:'Segoe UI, system-ui, sans-serif'}
+  };
+}
+
+function render(){
+  Plotly.react('chart', buildTraces(), baseLayout(), {
+    displayModeBar:false,
+    responsive:true,
+    scrollZoom:false,
+    doubleClick:false
+  });
+}
+
+const toggleDiv = document.getElementById('yearToggle');
+years.forEach(y=>{
+  const btn = document.createElement('button');
+  btn.textContent = y;
+  btn.className='active';
+  btn.style.background = yearColors[y];
+  btn.style.borderColor = yearColors[y];
+  btn.onclick = ()=>{
+    if(activeYears.has(y)){
+      if(activeYears.size===1) return;
+      activeYears.delete(y);
+      btn.classList.remove('active');
+      btn.classList.add('inactive');
+      btn.style.background = '#fff';
+      btn.style.color = yearColors[y];
+    } else {
+      activeYears.add(y);
+      btn.classList.add('active');
+      btn.classList.remove('inactive');
+      btn.style.background = yearColors[y];
+      btn.style.color = '#fff';
+    }
+    render();
+  };
+  toggleDiv.appendChild(btn);
+});
+
+document.getElementById('lineToggle').addEventListener('change', render);
+
+let resizeTimer;
+window.addEventListener('resize', ()=>{
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(render, 150);
+});
+
+render();
+</script>
+</body>
+</html>
