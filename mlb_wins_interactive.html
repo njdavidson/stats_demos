@@ -19,20 +19,20 @@
     background:var(--cream);
     color:var(--ink);
     font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
-    padding: clamp(14px, 4vw, 28px) clamp(12px, 4vw, 20px) 50px;
+    padding: clamp(12px, 4vw, 28px) clamp(10px, 4vw, 20px) 40px;
   }
   .wrap{max-width:980px;margin:0 auto;}
   h1{
-    font-size: clamp(1.35rem, 4.5vw, 1.8rem);
+    font-size: clamp(1.25rem, 4.5vw, 1.8rem);
     font-weight: 700;
     margin: 0 0 6px;
     letter-spacing: -0.01em;
     color: var(--navy);
   }
   .subtitle{
-    font-size: clamp(0.98rem, 2.6vw, 1.08rem);
+    font-size: clamp(0.92rem, 2.6vw, 1.08rem);
     color: #55606C;
-    margin: 0 0 18px;
+    margin: 0 0 16px;
     max-width: 62ch;
     line-height: 1.5;
   }
@@ -40,103 +40,183 @@
     background: #FFFFFF;
     border: 1px solid var(--rule);
     border-radius: 8px;
-    padding: 16px 14px 14px;
+    padding: 14px 12px 12px;
   }
+  .menu-toggle{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--navy);
+    background: #fff;
+    border: 2px solid var(--navy);
+    border-radius: 999px;
+    padding: 9px 16px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    margin-bottom: 12px;
+  }
+  .menu-toggle:hover{ background: var(--cream); }
+  .hamburger{ display:inline-flex; flex-direction:column; gap:3px; width:16px; }
+  .hamburger span{ display:block; height:2px; width:100%; background:var(--navy); border-radius:1px; }
   .controls{
     display:flex;
     flex-wrap:wrap;
-    align-items:center;
-    gap: 12px 18px;
-    padding: 2px 2px 14px;
+    align-items:flex-end;
+    gap: 10px 18px;
+    padding: 2px 2px 12px;
     border-bottom: 1px solid var(--rule);
-    margin-bottom: 12px;
+    margin-bottom: 10px;
   }
-  .controls .group-label{
-    font-size:0.86rem;
+  .ctrl-group{ display:flex; flex-direction:column; gap:6px; }
+  .group-label{
+    font-size:0.84rem;
     color:#6B7683;
-    margin-bottom: 6px;
   }
   .year-toggle{
     display:flex;
-    gap:8px;
+    gap:6px;
     flex-wrap:wrap;
   }
   .year-toggle button{
     font-family: inherit;
-    font-size: 1rem;
+    font-size: 0.92rem;
     font-weight: 600;
     border: 2px solid var(--navy);
     background: #fff;
     color: var(--navy);
-    padding: 9px 14px;
-    min-height: 40px;
+    padding: 8px 12px;
+    min-height: 38px;
     border-radius: 999px;
     cursor: pointer;
     transition: background .12s ease, color .12s ease, opacity .12s ease;
     -webkit-tap-highlight-color: transparent;
   }
-  .year-toggle button.active{
-    color: #fff;
-  }
-  .year-toggle button.inactive{
-    opacity: 0.45;
+  .year-toggle button.active{ color: #fff; }
+  .year-toggle button.inactive{ opacity: 0.45; }
+  select#teamSelect{
+    font-family: inherit;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--navy);
+    background: #fff;
+    border: 2px solid var(--navy);
+    border-radius: 999px;
+    padding: 8px 34px 8px 14px;
+    min-height: 38px;
+    max-width: 230px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    appearance:none;
+    -webkit-appearance:none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232C4165' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>");
+    background-repeat:no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
   }
   .checkline{
     display:flex;
     align-items:center;
     gap:8px;
-    font-size:1rem;
+    font-size:0.92rem;
     color: var(--ink);
-    min-height: 40px;
+    min-height: 38px;
   }
   .checkline input{
     accent-color: var(--stitch);
     width:18px; height:18px;
   }
-  #chart{ width:100%; }
+  .resetbtn{
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--ink);
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 999px;
+    padding: 8px 14px;
+    min-height: 38px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .resetbtn:hover{ background: var(--cream); }
+  #chart{ width:100%; touch-action: pan-y; }
   .eqbox{
-    margin-top: 14px;
+    margin-top: 12px;
     background: #EFF2F6;
     border: 1px solid var(--rule);
     border-radius: 6px;
-    padding: 12px 16px;
+    padding: 10px 14px;
     display:flex;
     flex-wrap: wrap;
-    gap: 6px 18px;
+    gap: 4px 18px;
     align-items:baseline;
   }
   .eqbox .eq{
-    font-size: clamp(1.1rem, 3.6vw, 1.3rem);
+    font-size: clamp(1rem, 3.4vw, 1.2rem);
     font-weight: 700;
     color: var(--navy);
-    white-space: nowrap;
   }
   .eqbox .stats{
-    font-size: clamp(0.92rem, 2.8vw, 1.02rem);
+    font-size: clamp(0.86rem, 2.8vw, 0.96rem);
     color: #55606C;
   }
   .hint{
-    font-size:0.88rem;
+    font-size:0.85rem;
     color:#7A8390;
-    margin-top: 12px;
+    margin-top: 10px;
     line-height:1.5;
+  }
+  @media (max-width: 600px){
+    .controls{ flex-direction: column; align-items: stretch; gap: 12px; padding-bottom: 12px; margin-bottom: 10px; }
+    .ctrl-group{ width: 100%; }
+    .spacer-label{ display: none; }
+    select#teamSelect{ max-width: none; width: 100%; }
+    .checkline, .resetbtn{ width: 100%; }
+    .resetbtn{ text-align: center; }
+  }
+  @media (max-width: 480px){
+    .panel{ padding: 10px 8px 10px; }
+    .year-toggle{ gap:5px; }
+    .year-toggle button{ font-size:0.82rem; padding:6px 9px; min-height:34px; }
+    select#teamSelect{ font-size:0.82rem; padding:8px 30px 8px 10px; min-height:38px; }
+    .checkline{ font-size:0.82rem; min-height:34px; }
+    .resetbtn{ font-size:0.82rem; padding:8px 10px; min-height:38px; }
+    .group-label{ font-size:0.76rem; }
   }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Wins vs. Run Differential</h1>
-  <p class="subtitle">Every MLB team-season, 2021 to 2025 (150 points total; 2020 excluded). Hover or tap a point for the team, season, run differential, and win total. Use the buttons below to show or hide a season.</p>
+  <p class="subtitle">Every MLB team-season, 2021 to 2025 (150 points total; 2020 excluded). Hover or tap a point for the team, season, run differential, and win total. Pinch or scroll to zoom in on the chart; use Reset view to zoom back out.</p>
 
   <div class="panel">
-    <div class="controls">
-      <div>
+    <button class="menu-toggle" id="menuToggle" type="button" aria-expanded="false" aria-controls="controlsPanel">
+      <span class="hamburger"><span></span><span></span><span></span></span>
+      <span id="menuToggleLabel">Chart options</span>
+    </button>
+    <div class="controls" id="controlsPanel">
+      <div class="ctrl-group">
         <div class="group-label">Season</div>
         <div class="year-toggle" id="yearToggle"></div>
       </div>
-      <div class="checkline">
-        <input type="checkbox" id="lineToggle" checked>
-        <label for="lineToggle">Show regression line</label>
+      <div class="ctrl-group">
+        <div class="group-label">Highlight a team</div>
+        <select id="teamSelect"></select>
+      </div>
+      <div class="ctrl-group">
+        <div class="group-label spacer-label">&nbsp;</div>
+        <div class="checkline">
+          <input type="checkbox" id="lineToggle" checked>
+          <label for="lineToggle">Regression line</label>
+        </div>
+      </div>
+      <div class="ctrl-group">
+        <div class="group-label spacer-label">&nbsp;</div>
+        <button class="resetbtn" id="resetBtn" type="button">Reset view</button>
       </div>
     </div>
     <div id="chart"></div>
@@ -185,13 +265,43 @@ document.getElementById('statsLabel').textContent =
   "r = " + corr(DATA).toFixed(3) + "   |   n = " + DATA.length + " team-seasons";
 
 let activeYears = new Set(years);
+let selectedGroup = null;
+
+// team dropdown, with the two renamed franchises grouped together
+const rawTeams = Array.from(new Set(DATA.map(d=>d.team)));
+const teamGroups = [];
+const grouped = new Set();
+function addGroup(label, matchNames){
+  teamGroups.push({ label, matches: new Set(matchNames) });
+  matchNames.forEach(n=>grouped.add(n));
+}
+addGroup("Cleveland Indians/Guardians", ["Cleveland Indians","Cleveland Guardians"]);
+addGroup("(Oakland) Athletics", ["Oakland Athletics","Athletics"]);
+rawTeams.filter(t=>!grouped.has(t)).forEach(t=> addGroup(t, [t]) );
+teamGroups.sort((a,b)=> a.label.localeCompare(b.label));
+
+const teamSelect = document.getElementById('teamSelect');
+const allOpt = document.createElement('option');
+allOpt.value = ""; allOpt.textContent = "All teams";
+teamSelect.appendChild(allOpt);
+teamGroups.forEach((g,i)=>{
+  const opt = document.createElement('option');
+  opt.value = String(i);
+  opt.textContent = g.label;
+  teamSelect.appendChild(opt);
+});
+teamSelect.addEventListener('change', ()=>{
+  selectedGroup = teamSelect.value==="" ? null : teamGroups[+teamSelect.value];
+  render();
+});
 
 function buildTraces(){
   const traces = [];
   years.forEach(y=>{
     if(!activeYears.has(y)) return;
     const pts = DATA.filter(d=>d.year===y);
-    traces.push({
+    const opacities = pts.map(p => selectedGroup ? (selectedGroup.matches.has(p.team) ? 0.95 : 0.10) : 0.85);
+    const trace = {
       x: pts.map(p=>p.rd),
       y: pts.map(p=>p.wins),
       customdata: pts.map(p=>[p.team, p.year, p.rd, p.wins, p.losses, p.rs, p.ra]),
@@ -199,15 +309,46 @@ function buildTraces(){
       type: 'scatter',
       name: String(y),
       showlegend: false,
-      marker: { color: yearColors[y], size: 9, line:{width:0.5,color:'#1C2530'} },
-      hovertemplate:
+      marker: { color: yearColors[y], size: 9, opacity: opacities, line:{width:0.5,color:'#1C2530'} }
+    };
+    if(selectedGroup){
+      // when a team is highlighted, the dimmed background points shouldn't
+      // respond to hover/tap -- only the highlight trace below should
+      trace.hoverinfo = 'skip';
+    } else {
+      trace.hovertemplate =
         "<b>%{customdata[0]}</b> (%{customdata[1]})<br>" +
         "Run differential: %{customdata[2]:+d}<br>" +
         "Wins: %{customdata[3]}  (Losses: %{customdata[4]})<br>" +
         "Runs scored: %{customdata[5]}   Runs allowed: %{customdata[6]}" +
-        "<extra></extra>"
-    });
+        "<extra></extra>";
+    }
+    traces.push(trace);
   });
+
+  if(selectedGroup){
+    const hlPts = DATA
+      .filter(d=> activeYears.has(d.year) && selectedGroup.matches.has(d.team))
+      .sort((a,b)=> a.year-b.year);
+    if(hlPts.length){
+      traces.push({
+        x: hlPts.map(p=>p.rd),
+        y: hlPts.map(p=>p.wins),
+        customdata: hlPts.map(p=>[p.team, p.year, p.rd, p.wins, p.losses, p.rs, p.ra]),
+        mode: 'markers',
+        type: 'scatter',
+        name: selectedGroup.label,
+        showlegend:false,
+        marker:{ color:'#A6362B', size:14, line:{width:1.5,color:'#1C2530'} },
+        hovertemplate:
+          "<b>%{customdata[0]}</b> (%{customdata[1]})<br>" +
+          "Run differential: %{customdata[2]:+d}<br>" +
+          "Wins: %{customdata[3]}  (Losses: %{customdata[4]})<br>" +
+          "Runs scored: %{customdata[5]}   Runs allowed: %{customdata[6]}" +
+          "<extra></extra>"
+      });
+    }
+  }
 
   if(document.getElementById('lineToggle').checked){
     const xs = DATA.map(d=>d.rd);
@@ -218,7 +359,8 @@ function buildTraces(){
       mode:'lines', type:'scatter',
       name:'Regression line',
       showlegend:false,
-      line:{color:'#A6362B', width:2.5},
+      line:{color:'#A6362B', width:2},
+      opacity: 0.55,
       hoverinfo:'skip'
     });
   }
@@ -227,8 +369,8 @@ function buildTraces(){
 
 function chartHeight(){
   const w = window.innerWidth;
-  if (w < 480) return 340;
-  if (w < 700) return 420;
+  if (w < 480) return 360;
+  if (w < 700) return 440;
   return 520;
 }
 
@@ -240,25 +382,29 @@ function tickSpacing(){
 
 function baseLayout(){
   const ticks = tickSpacing();
+  const narrow = window.innerWidth < 480;
   return {
-    margin:{l:50,r:16,t:10,b:44},
+    margin:{l:50,r:16,t:10,b: narrow ? 62 : 50},
     height: chartHeight(),
+    dragmode:'pan',
     xaxis:{
-      title:{text:'Run Differential (Runs Scored \u2212 Runs Allowed)', font:{size:14}},
+      title:{
+        text: narrow ? 'Run Differential (RD)' : 'Run Differential (Runs Scored \u2212 Runs Allowed)',
+        font:{size: narrow ? 12 : 14}
+      },
       zeroline:true, zerolinecolor:'#C7C2B4',
       dtick:ticks.x,
+      tickangle:0,
       gridcolor:'#EAE7DE',
       gridwidth:1,
-      tickfont:{size:12},
-      fixedrange:true
+      tickfont:{size: narrow ? 11 : 12}
     },
     yaxis:{
       title:{text:'Wins', font:{size:14}},
       dtick:ticks.y,
       gridcolor:'#EAE7DE',
       gridwidth:1,
-      tickfont:{size:12},
-      fixedrange:true
+      tickfont:{size: narrow ? 11 : 12}
     },
     plot_bgcolor:'#FFFFFF',
     paper_bgcolor:'#FFFFFF',
@@ -272,8 +418,7 @@ function render(){
   Plotly.react('chart', buildTraces(), baseLayout(), {
     displayModeBar:false,
     responsive:true,
-    scrollZoom:false,
-    doubleClick:false
+    scrollZoom:true
   });
 }
 
@@ -305,6 +450,22 @@ years.forEach(y=>{
 });
 
 document.getElementById('lineToggle').addEventListener('change', render);
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  Plotly.relayout('chart', {'xaxis.autorange':true, 'yaxis.autorange':true});
+});
+
+const menuToggle = document.getElementById('menuToggle');
+const controlsPanel = document.getElementById('controlsPanel');
+const menuToggleLabel = document.getElementById('menuToggleLabel');
+function setMenuOpen(open){
+  controlsPanel.style.display = open ? 'flex' : 'none';
+  menuToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  menuToggleLabel.textContent = open ? 'Hide chart options' : 'Chart options';
+}
+setMenuOpen(window.innerWidth >= 600);
+menuToggle.addEventListener('click', ()=>{
+  setMenuOpen(controlsPanel.style.display === 'none');
+});
 
 let resizeTimer;
 window.addEventListener('resize', ()=>{
