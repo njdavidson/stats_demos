@@ -301,7 +301,7 @@ function corr(pts){
 }
 const reg = linreg(DATA);
 document.getElementById('eqLabel').textContent =
-  "Predicted Wins = " + reg.slope.toFixed(2) + " \u00D7 RD + " + 81;
+  "Predicted Wins = " + reg.slope.toFixed(3) + " \u00D7 RD + " + 81;
 document.getElementById('statsLabel').textContent =
   "r = " + corr(DATA).toFixed(3) + "   |   n = " + DATA.length + " team-seasons";
 
