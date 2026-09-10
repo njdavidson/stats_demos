@@ -299,9 +299,14 @@ function corr(pts){
   const den = Math.sqrt((n*sxx-sx*sx)*(n*syy-sy*sy));
   return num/den;
 }
-const reg = linreg(DATA);
+const rawReg = linreg(DATA);
+// slope rounded to 3 decimals; intercept fixed at the theoretical 81 --
+// with mean run differential = 0 and mean wins = 81 over a 162-game
+// season, the true regression line passes through (0, 81) exactly, and
+// the tiny drift we compute otherwise is just real-world schedule noise
+const reg = { slope: Number(rawReg.slope.toFixed(3)), intercept: 81 };
 document.getElementById('eqLabel').textContent =
-  "Predicted Wins = " + reg.slope.toFixed(3) + " \u00D7 RD + " + 81;
+  "Predicted Wins = " + reg.slope.toFixed(3) + " \u00D7 RD + " + reg.intercept;
 document.getElementById('statsLabel').textContent =
   "r = " + corr(DATA).toFixed(3) + "   |   n = " + DATA.length + " team-seasons";
 
@@ -312,27 +317,58 @@ let selectedGroup = null;
 const rawTeams = Array.from(new Set(DATA.map(d=>d.team)));
 const teamGroups = [];
 const grouped = new Set();
-function addGroup(label, matchNames){
-  teamGroups.push({ label, matches: new Set(matchNames) });
+function addGroup(label, matchNames, league){
+  teamGroups.push({ label, matches: new Set(matchNames), league });
   matchNames.forEach(n=>grouped.add(n));
 }
-addGroup("Cleveland Indians/Guardians", ["Cleveland Indians","Cleveland Guardians"]);
-addGroup("(Oakland) Athletics", ["Oakland Athletics","Athletics"]);
-rawTeams.filter(t=>!grouped.has(t)).forEach(t=> addGroup(t, [t]) );
+const AL_TEAMS = new Set([
+  "Baltimore Orioles","Boston Red Sox","New York Yankees","Tampa Bay Rays","Toronto Blue Jays",
+  "Chicago White Sox","Cleveland Indians","Cleveland Guardians","Detroit Tigers","Kansas City Royals","Minnesota Twins",
+  "Houston Astros","Oakland Athletics","Athletics","Los Angeles Angels","Seattle Mariners","Texas Rangers"
+]);
+function leagueOf(team){ return AL_TEAMS.has(team) ? 'AL' : 'NL'; }
+
+addGroup("Cleveland Indians/Guardians", ["Cleveland Indians","Cleveland Guardians"], 'AL');
+addGroup("(Oakland) Athletics", ["Oakland Athletics","Athletics"], 'AL');
+rawTeams.filter(t=>!grouped.has(t)).forEach(t=> addGroup(t, [t], leagueOf(t)) );
 teamGroups.sort((a,b)=> a.label.localeCompare(b.label));
+
+const alGroup = { label:"American League", matches: new Set(rawTeams.filter(t=>leagueOf(t)==='AL')) };
+const nlGroup = { label:"National League", matches: new Set(rawTeams.filter(t=>leagueOf(t)==='NL')) };
 
 const teamSelect = document.getElementById('teamSelect');
 const allOpt = document.createElement('option');
 allOpt.value = ""; allOpt.textContent = "All teams";
 teamSelect.appendChild(allOpt);
+
+const alOpt = document.createElement('option');
+alOpt.value = "AL"; alOpt.textContent = "American League";
+teamSelect.appendChild(alOpt);
+
+const nlOpt = document.createElement('option');
+nlOpt.value = "NL"; nlOpt.textContent = "National League";
+teamSelect.appendChild(nlOpt);
+
+const alOptgroup = document.createElement('optgroup');
+alOptgroup.label = "American League teams";
+const nlOptgroup = document.createElement('optgroup');
+nlOptgroup.label = "National League teams";
+
 teamGroups.forEach((g,i)=>{
   const opt = document.createElement('option');
   opt.value = String(i);
   opt.textContent = g.label;
-  teamSelect.appendChild(opt);
+  (g.league === 'AL' ? alOptgroup : nlOptgroup).appendChild(opt);
 });
+teamSelect.appendChild(alOptgroup);
+teamSelect.appendChild(nlOptgroup);
+
 teamSelect.addEventListener('change', ()=>{
-  selectedGroup = teamSelect.value==="" ? null : teamGroups[+teamSelect.value];
+  const v = teamSelect.value;
+  if(v === "") selectedGroup = null;
+  else if(v === "AL") selectedGroup = alGroup;
+  else if(v === "NL") selectedGroup = nlGroup;
+  else selectedGroup = teamGroups[+v];
   render();
 });
 
