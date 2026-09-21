@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Burrito Barn Sample</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 480px;
+      margin: 40px auto;
+      padding: 20px;
+      line-height: 1.5;
+      text-align: center;
+    }
+    h1 { font-size: 22px; }
+    .weights {
+      font-size: 20px;
+      font-weight: bold;
+      margin: 24px 0;
+      background: #f5f5f5;
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .weights div { margin: 4px 0; }
+    button {
+      padding: 10px 18px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #333;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Big Bean Burrito — Sample Weights</h1>
+  <p>Here's your random sample of 5 burrito weights:</p>
+
+  <div class="weights" id="weights"></div>
+
+  <button onclick="drawSample()">Get a new sample</button>
+
+  <script>
+    // TODO: replace with your actual 100 population values, in order.
+    // Quickest way to get this list: in your Population sheet, put
+    //   =TEXTJOIN(", ", TRUE, A2:A101)
+    // in an empty cell, then copy that comma-separated result in below.
+    const POPULATION = [
+      18, 14, 21, 16, 17, 19, 15, 22, 20, 13,
+      // ... paste the rest of your 100 values here ...
+    ];
+
+    function sampleWithoutReplacement(arr, n) {
+      const copy = arr.slice();
+      for (let i = 0; i < n; i++) {
+        const j = i + Math.floor(Math.random() * (copy.length - i));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy.slice(0, n);
+    }
+
+    function drawSample() {
+      const sample = sampleWithoutReplacement(POPULATION, 5).map(x => Math.round(x));
+      const container = document.getElementById("weights");
+      container.innerHTML = sample.map(x => `<div>${x} oz</div>`).join("");
+    }
+
+    drawSample();
+  </script>
+</body>
+</html>
