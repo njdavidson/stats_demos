@@ -27,7 +27,7 @@
     h2 { font-size: 18px; margin: 28px 0 4px; }
     .note { color: var(--muted); font-size: 14px; margin: 0 0 12px; }
 
-    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+    .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px 6px; padding-top: 8px; }
     .cell {
       position: relative;
       border: 1px solid var(--line);
@@ -92,9 +92,9 @@
   <main>
     <h1>Your bootstrap sample</h1>
     <p class="note">20 tacos drawn <strong>with replacement</strong> from the original sample of 20.
-      Highlighted values were picked more than once.</p>
+      The badge shows how many times each taco was picked. Gray tacos weren't picked at all.</p>
 
-    <div id="bootGrid" class="grid"></div>
+    <div id="origGrid" class="grid"></div>
 
     <div class="mean-box">
       <div class="label">Mean of your bootstrap sample</div>
@@ -111,10 +111,9 @@
     <button id="submitBtn" type="button">Submit my mean</button>
     <p id="status" role="status"></p>
 
-    <h2>Original sample</h2>
-    <p class="note">The badge shows how many times each taco ended up in your bootstrap sample.
-      Gray tacos weren't picked at all.</p>
-    <div id="origGrid" class="grid"></div>
+    <h2>Your 20 values, in the order drawn</h2>
+    <p class="note">Highlighted values were picked more than once.</p>
+    <div id="bootGrid" class="grid"></div>
   </main>
 
   <script>
