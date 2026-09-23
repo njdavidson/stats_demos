@@ -82,6 +82,11 @@
       cursor: pointer;
     }
     button:disabled { background: #9db6cf; cursor: default; }
+    button.secondary { background: #fff; color: var(--blue); border: 2px solid var(--blue); }
+    .buttons { display: grid; gap: 10px; }
+    button.secondary:disabled { background: #fff; color: #9db6cf; border-color: #c9d6e3; }
+    .history { font-size: 15px; margin: 10px 0 0; font-variant-numeric: tabular-nums; }
+    .history .sub { font-weight: 700; color: #2e7d32; }
     button:focus-visible { outline: 3px solid #1f4f80; outline-offset: 2px; }
     #status { text-align: center; font-weight: 600; min-height: 1.4em; margin: 10px 0 0; }
     #status.ok { color: #2e7d32; }
@@ -108,12 +113,12 @@
       <input id="studentName" type="text" autocomplete="off" placeholder="e.g. Jordan S.">
     </label>
 
-    <button id="submitBtn" type="button">Submit my mean</button>
+    <div class="buttons">
+      <button id="submitBtn" type="button">Submit my mean</button>
+      <button id="againBtn" type="button" class="secondary" disabled>Get a new sample</button>
+    </div>
     <p id="status" role="status"></p>
-
-    <h2>Your 20 values, in the order drawn</h2>
-    <p class="note">Highlighted values were picked more than once.</p>
-    <div id="bootGrid" class="grid"></div>
+    <p class="history" id="history"></p>
   </main>
 
   <script>
@@ -135,16 +140,19 @@
     };
 
     const n = CONFIG.ORIGINAL.length;
-    let state = loadState() || newState();
+    // state: current sample, whether it's been submitted, name fields, and submitted means
+    let state = loadState() || { idx: randomIdx(), submitted: false, history: [] };
+    if (!Array.isArray(state.history)) state.history = [];
     saveState();
 
     render();
     document.getElementById('submitBtn').addEventListener('click', submitMean);
+    document.getElementById('againBtn').addEventListener('click', newSample);
 
-    function newState() {
+    function randomIdx() {
       const idx = [];
       for (let i = 0; i < n; i++) idx.push(Math.floor(Math.random() * n));
-      return { idx: idx, submitted: false };
+      return idx;
     }
 
     function loadState() {
@@ -158,43 +166,46 @@
       try { localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
     }
 
-    function bootValues() { return state.idx.map(function(i) { return CONFIG.ORIGINAL[i]; }); }
-
-    function bootMean() {
-      const v = bootValues();
-      return v.reduce(function(s, x) { return s + x; }, 0) / v.length;
+    function meanOf(idx) {
+      return idx.reduce(function(s, i) { return s + CONFIG.ORIGINAL[i]; }, 0) / idx.length;
     }
 
     function render() {
       const counts = new Array(n).fill(0);
       state.idx.forEach(function(i) { counts[i]++; });
 
-      document.getElementById('bootGrid').innerHTML = state.idx.map(function(i) {
-        return '<div class="cell' + (counts[i] > 1 ? ' repeat' : '') + '">' +
-               CONFIG.ORIGINAL[i].toFixed(1) + '</div>';
-      }).join('');
-
       document.getElementById('origGrid').innerHTML = CONFIG.ORIGINAL.map(function(x, i) {
         return '<div class="cell' + (counts[i] === 0 ? ' missing' : counts[i] > 1 ? ' repeat' : '') + '">' +
                x.toFixed(1) + '<span class="badge">×' + counts[i] + '</span></div>';
       }).join('');
 
-      document.getElementById('bootMean').textContent = bootMean().toFixed(2);
+      document.getElementById('bootMean').textContent = meanOf(state.idx).toFixed(2);
 
-      if (state.submitted) showSubmitted();
-    }
-
-    function showSubmitted() {
-      const btn = document.getElementById('submitBtn');
+      // name fields lock after the first submission so every dot carries the same name
       const u = document.getElementById('username');
       const nm = document.getElementById('studentName');
-      u.value = state.username || '';
-      nm.value = state.name || '';
-      u.disabled = true;
-      nm.disabled = true;
-      btn.disabled = true;
-      btn.textContent = 'Mean submitted';
-      setStatus('Your mean is in. Watch the board!', 'ok');
+      if (state.username) { u.value = state.username; u.disabled = true; }
+      if (state.name) { nm.value = state.name; nm.disabled = true; }
+
+      // Submit is live until this sample is sent; then only "Get a new sample" is live
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = state.submitted;
+      submitBtn.textContent = state.submitted ? 'Mean submitted' : 'Submit my mean';
+      document.getElementById('againBtn').disabled = !state.submitted;
+
+      if (state.submitted) setStatus('Submitted! Get a new sample to add another dot.', 'ok');
+
+      document.getElementById('history').innerHTML = state.history.length
+        ? 'Your submitted means: ' + state.history.map(function(m) { return m.toFixed(2); }).join(', ')
+        : '';
+    }
+
+    function newSample() {
+      state.idx = randomIdx();
+      state.submitted = false;
+      saveState();   // saved immediately, so reloading can't skip a sample
+      setStatus('');
+      render();
     }
 
     function setStatus(msg, cls) {
@@ -216,11 +227,9 @@
       btn.disabled = true;
       setStatus('Submitting…');
 
-      state.username = username;
-      state.name = name;
-
+      const mean = meanOf(state.idx);
       const body = new URLSearchParams();
-      body.append(CONFIG.ENTRY_ID, bootMean().toFixed(3));
+      body.append(CONFIG.ENTRY_ID, mean.toFixed(3));
       body.append(CONFIG.ENTRY_USERNAME, username);
       body.append(CONFIG.ENTRY_NAME, name);
 
@@ -231,9 +240,12 @@
           mode: 'no-cors',
           body: body
         });
+        state.username = username;
+        state.name = name;
         state.submitted = true;
+        state.history.push(mean);
         saveState();
-        showSubmitted();
+        render();
       } catch (e) {
         btn.disabled = false;
         setStatus('Couldn\u2019t submit. Check your connection and tap again.', 'err');
