@@ -15,6 +15,7 @@
     }
     h1 { font-size: 22px; margin-bottom: 4px; }
     .subtitle { color: #555; margin-bottom: 20px; }
+    .hint { color: #555; font-size: 14px; margin-top: -8px; }
 
     input {
       width: 100%;
@@ -24,10 +25,21 @@
       margin-bottom: 12px;
     }
 
-    .round-counter {
+    .tracker {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .pill {
+      border: 1px solid #ccc;
+      border-radius: 999px;
+      padding: 4px 14px;
+      font-size: 14px;
       font-weight: bold;
-      margin-bottom: 10px;
-      color: #555;
+      color: #444;
+      background: #fafafa;
     }
 
     .cards {
@@ -63,7 +75,7 @@
     .card:hover { box-shadow: 0 0 0 4px #ccc; }
     .card.disabled { cursor: default; }
     .card.burning { background: #fde3e3; border-color: #b00020; }
-    .card.safe { background: #e3f7e6; border-color: #187a2f; }
+    .card.safe { background: #fff; border-color: #999; }
 
     .feedback {
       font-size: 20px;
@@ -97,8 +109,8 @@
   <div id="screen-name">
     <h1>Blindsight Guessing Game</h1>
     <p class="subtitle">
-      You'll see two houses, side by side. One is on fire &mdash; try to pick the one that
-      is <strong>not</strong> on fire. You'll do this 17 times.
+      You'll see two houses, side by side, but only the <strong>right side</strong> of each one.
+      One of them has a fire on its left side. Try to pick that one. You'll do this 17 times.
     </p>
     <input id="nameInput" type="text" placeholder="First name and last initial (e.g., Alex R)">
     <input id="usernameInput" type="text" placeholder="CofC username or email">
@@ -106,8 +118,12 @@
   </div>
 
   <div id="screen-game" style="display:none;">
-    <div class="round-counter" id="roundCounter"></div>
-    <p>Which house is <strong>not</strong> on fire?</p>
+    <div class="tracker">
+      <span class="pill" id="roundCounter"></span>
+      <span class="pill" id="scoreCounter"></span>
+    </div>
+    <p>Which house is <strong>on fire</strong>?</p>
+    <p class="hint">You can only see the right side of each house. Tap the one you think has the fire on its left side.</p>
     <div class="cards">
       <div class="card" id="cardLeft" onclick="guess('left')"></div>
       <div class="card" id="cardRight" onclick="guess('right')"></div>
@@ -152,7 +168,8 @@
     let username = "";
     let round = 0;
     let score = 0;
-    let correctSide = null;
+    let done = 0;   // rounds answered so far
+    let fireSide = null;
     let answered = false;
 
     function extractUsername(raw) {
@@ -174,7 +191,15 @@
       document.getElementById("screen-game").style.display = "block";
       round = 0;
       score = 0;
+      done = 0;
       nextRound();
+    }
+
+    function updateTracker() {
+      document.getElementById("roundCounter").textContent =
+        `Round ${Math.min(round, TOTAL_ROUNDS)} of ${TOTAL_ROUNDS}`;
+      document.getElementById("scoreCounter").textContent =
+        `Correct: ${score} of ${done}`;
     }
 
     function nextRound() {
@@ -185,10 +210,9 @@
 
       round++;
       answered = false;
-      correctSide = Math.random() < 0.5 ? "left" : "right";
+      fireSide = Math.random() < 0.5 ? "left" : "right";
 
-      document.getElementById("roundCounter").textContent =
-        `Round ${round} of ${TOTAL_ROUNDS}`;
+      updateTracker();
 
       const left = document.getElementById("cardLeft");
       const right = document.getElementById("cardRight");
@@ -209,8 +233,8 @@
 
       const left = document.getElementById("cardLeft");
       const right = document.getElementById("cardRight");
-      const burningCard = (correctSide === "left") ? right : left; // burning = opposite of "safe"/correct
-      const safeCard = (correctSide === "left") ? left : right;
+      const burningCard = (fireSide === "left") ? left : right;
+      const safeCard = (fireSide === "left") ? right : left;
 
       burningCard.classList.add("burning");
       burningCard.innerHTML = `<img src="${FIRE_IMAGE}" alt="The house that is on fire">`;
@@ -218,7 +242,8 @@
       safeCard.innerHTML = `<img src="${NO_FIRE_IMAGE}" alt="The house that is not on fire">`;
 
       const feedback = document.getElementById("feedback");
-      if (side === correctSide) {
+      done++;
+      if (side === fireSide) {
         score++;
         feedback.textContent = "Correct!";
         feedback.className = "feedback correct";
@@ -226,6 +251,7 @@
         feedback.textContent = "Incorrect.";
         feedback.className = "feedback incorrect";
       }
+      updateTracker();
 
       document.getElementById("nextButton").style.display = "inline-block";
     }
@@ -234,7 +260,7 @@
       document.getElementById("screen-game").style.display = "none";
       document.getElementById("screen-summary").style.display = "block";
       document.getElementById("summaryText").textContent =
-        `${studentName}, you correctly identified the safe house ${score} out of ${TOTAL_ROUNDS} times.`;
+        `${studentName}, you correctly picked the house on fire ${score} out of ${TOTAL_ROUNDS} times.`;
       submitResults();
     }
 
