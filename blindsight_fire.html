@@ -38,20 +38,29 @@
     }
 
     .card {
-      width: 140px;
-      height: 160px;
+      flex: 1 1 0;
+      max-width: 230px;
+      aspect-ratio: 1 / 1;
       border: 3px solid #333;
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 48px;
+      font-size: 72px;
       cursor: pointer;
-      background: #f5f5f5;
+      background: #fff;
       user-select: none;
+      overflow: hidden;
     }
 
-    .card:hover { background: #eee; }
+    .card img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+    }
+
+    .card:hover { box-shadow: 0 0 0 4px #ccc; }
     .card.disabled { cursor: default; }
     .card.burning { background: #fde3e3; border-color: #b00020; }
     .card.safe { background: #e3f7e6; border-color: #187a2f; }
@@ -118,6 +127,16 @@
     // ---- Config: fill these in ----
     const TOTAL_ROUNDS = 17;
 
+    // Image shown on both cards at the start of each round (right side of the
+    // house only), and the two images shown when the answer is revealed.
+    // Keep these files in the same folder as index.html.
+    const HOUSE_IMAGE = "right_side_only.jpg";
+    const FIRE_IMAGE = "fire_house.jpg";
+    const NO_FIRE_IMAGE = "no_fire_house.jpg";
+
+    // Preload so the reveal appears instantly, even on slow wifi.
+    [HOUSE_IMAGE, FIRE_IMAGE, NO_FIRE_IMAGE].forEach(src => { new Image().src = src; });
+
     // From your Google Form: click the three dots -> "Get pre-filled link",
     // fill in dummy values, and copy the resulting URL. Pull the form ID and
     // entry IDs out of that URL and paste them in below. Note this uses the
@@ -176,7 +195,7 @@
 
       [left, right].forEach(card => {
         card.className = "card";
-        card.textContent = "🏠";
+        card.innerHTML = `<img src="${HOUSE_IMAGE}" alt="A house (right side only)">`;
       });
 
       document.getElementById("feedback").textContent = "";
@@ -194,9 +213,9 @@
       const safeCard = (correctSide === "left") ? left : right;
 
       burningCard.classList.add("burning");
-      burningCard.textContent = "🔥";
+      burningCard.innerHTML = `<img src="${FIRE_IMAGE}" alt="The house that is on fire">`;
       safeCard.classList.add("safe");
-      safeCard.textContent = "🏠";
+      safeCard.innerHTML = `<img src="${NO_FIRE_IMAGE}" alt="The house that is not on fire">`;
 
       const feedback = document.getElementById("feedback");
       if (side === correctSide) {
