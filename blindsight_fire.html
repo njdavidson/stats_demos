@@ -74,8 +74,9 @@
 
     .card:hover { box-shadow: 0 0 0 4px #ccc; }
     .card.disabled { cursor: default; }
-    .card.burning { background: #fde3e3; border-color: #b00020; }
-    .card.safe { background: #fff; border-color: #999; }
+    .card.correct { border-width: 6px; border-color: #187a2f; }
+    .card.incorrect { border-width: 6px; border-color: #b00020; }
+    .card.neutral { border-color: #999; }
 
     .feedback {
       font-size: 20px;
@@ -83,7 +84,7 @@
       margin: 16px 0;
       min-height: 28px;
     }
-    .feedback.correct { color: #187a2f; }
+    .feedback.correct { color: #187a2f; font-weight: 900; font-size: 24px; }
     .feedback.incorrect { color: #b00020; }
 
     button {
@@ -234,15 +235,19 @@
       const right = document.getElementById("cardRight");
       const burningCard = (fireSide === "left") ? left : right;
       const safeCard = (fireSide === "left") ? right : left;
+      const clickedCard = (side === "left") ? left : right;
+      const otherCard = (side === "left") ? right : left;
 
-      burningCard.classList.add("burning");
       burningCard.innerHTML = `<img src="${FIRE_IMAGE}" alt="The house that is on fire">`;
-      safeCard.classList.add("safe");
       safeCard.innerHTML = `<img src="${NO_FIRE_IMAGE}" alt="The house that is not on fire">`;
+
+      const wasCorrect = side === fireSide;
+      clickedCard.classList.add(wasCorrect ? "correct" : "incorrect");
+      otherCard.classList.add("neutral");
 
       const feedback = document.getElementById("feedback");
       done++;
-      if (side === fireSide) {
+      if (wasCorrect) {
         score++;
         feedback.textContent = "Correct!";
         feedback.className = "feedback correct";
