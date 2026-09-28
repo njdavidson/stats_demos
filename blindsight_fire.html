@@ -136,7 +136,6 @@
     <h1>All done!</h1>
     <p class="summary" id="summaryText"></p>
     <p id="submitStatus">Submitting your results...</p>
-    <p id="fallbackLink" style="font-size:14px; color:#555;"></p>
   </div>
 
   <script>
@@ -270,25 +269,16 @@
       body.append(USERNAME_ENTRY_ID, username);
       body.append(SCORE_ENTRY_ID, score);
 
-      const fallback = document.getElementById("fallbackLink");
-      const manualUrl =
-        `https://docs.google.com/forms/d/e/${FORM_ID}/viewform?usp=pp_url` +
-        `&${NAME_ENTRY_ID}=${encodeURIComponent(studentName)}` +
-        `&${USERNAME_ENTRY_ID}=${encodeURIComponent(username)}` +
-        `&${SCORE_ENTRY_ID}=${encodeURIComponent(score)}`;
-
-      // no-cors means we can't read the response, so this always "succeeds"
-      // from the browser's point of view — the fallback link stays visible
-      // as a just-in-case, not because we detected a failure.
+      // no-cors means the browser won't let us read the response, so we can't
+      // confirm delivery from here. Check the response sheet to verify.
       fetch(FORM_SUBMIT_URL, {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
         body: body.toString()
-      }).catch(() => { /* no-cors gives us nothing to act on anyway */ });
+      }).catch(() => { /* nothing useful to do without a response */ });
 
       document.getElementById("submitStatus").textContent = "Results submitted — you're all set!";
-      fallback.innerHTML = `Didn't see a confirmation from your instructor? <a href="${manualUrl}">Tap here to double-check</a>.`;
     }
   </script>
 </body>
