@@ -53,7 +53,7 @@
       flex: 1 1 0;
       max-width: 230px;
       aspect-ratio: 1 / 1;
-      border: 3px solid #333;
+      border: 6px solid #ccc;
       border-radius: 12px;
       display: flex;
       align-items: center;
@@ -65,17 +65,16 @@
       overflow: hidden;
     }
 
-    .card img {
+    .card svg {
       width: 100%;
       height: 100%;
-      object-fit: contain;
       pointer-events: none;
     }
 
     .card:hover { box-shadow: 0 0 0 4px #ccc; }
     .card.disabled { cursor: default; }
-    .card.correct { border-width: 6px; border-color: #187a2f; }
-    .card.incorrect { border-width: 6px; border-color: #b00020; }
+    .card.correct { border-color: #187a2f; }
+    .card.incorrect { border-color: #b00020; }
     .card.neutral { border-color: #999; }
 
     .feedback {
@@ -143,15 +142,64 @@
     // ---- Config: fill these in ----
     const TOTAL_ROUNDS = 17;
 
-    // Image shown on both cards at the start of each round (right side of the
-    // house only), and the two images shown when the answer is revealed.
-    // Keep these files in the same folder as index.html.
-    const HOUSE_IMAGE = "right_side_only.jpg";
-    const FIRE_IMAGE = "fire_house.jpg";
-    const NO_FIRE_IMAGE = "no_fire_house.jpg";
+    // The house is drawn once, in code, and reused for all three states
+    // (right-side-only, fire, no-fire). Since every state shares the exact
+    // same coordinates, the house can never shift position between states.
+    const FLAME_SEEDS = [
+      { seed: 11, x0: 175 }, { seed: 22, x0: 195 }, { seed: 33, x0: 160 }
+    ];
 
-    // Preload so the reveal appears instantly, even on slow wifi.
-    [HOUSE_IMAGE, FIRE_IMAGE, NO_FIRE_IMAGE].forEach(src => { new Image().src = src; });
+    function seededRandom(seed) {
+      let s = seed;
+      return () => {
+        s = (s * 1103515245 + 12345) & 0x7fffffff;
+        return s / 0x7fffffff;
+      };
+    }
+
+    function buildFlamePaths() {
+      return FLAME_SEEDS.map(({ seed, x0 }) => {
+        const rnd = seededRandom(seed);
+        const steps = [-30, -22, -14, 14, 22, 30];
+        let x = x0, y = 195;
+        let d = `M ${x},${y}`;
+        while (y > -20) {
+          x += steps[Math.floor(rnd() * steps.length)];
+          x = Math.max(90, Math.min(230, x));
+          y -= 12 + Math.floor(rnd() * 8);
+          d += ` L ${x},${y}`;
+        }
+        return `<path d="${d}" stroke="#111" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+      }).join("\n");
+    }
+
+    const FLAME_MARKUP = buildFlamePaths();
+
+    function houseSvg({ showLeft, showFire, label }) {
+      const clipDefs = !showLeft
+        ? '<clipPath id="rightClip"><rect x="240" y="0" width="240" height="480"/></clipPath>'
+        : "";
+      const clipAttr = !showLeft ? 'clip-path="url(#rightClip)"' : "";
+      const flame = showFire ? FLAME_MARKUP : "";
+
+      return `
+<svg viewBox="0 0 480 480" role="img" aria-label="${label}">
+  <defs>${clipDefs}</defs>
+  <rect x="0" y="0" width="480" height="480" fill="white"/>
+  <g ${clipAttr} stroke="#333" stroke-width="3" fill="none" stroke-linejoin="round" stroke-linecap="round">
+    ${flame}
+    <rect x="250" y="45" width="55" height="18" fill="white"/>
+    <rect x="258" y="62" width="39" height="120" fill="white"/>
+    <polyline points="70,260 240,110 410,260"/>
+    <rect x="70" y="260" width="340" height="140" fill="white"/>
+    <rect x="280" y="190" width="40" height="50" fill="white"/>
+    <rect x="90" y="310" width="50" height="80" fill="white"/>
+    <rect x="165" y="310" width="50" height="80" fill="white"/>
+    <rect x="245" y="290" width="60" height="110" fill="white"/>
+    <rect x="335" y="310" width="50" height="80" fill="white"/>
+  </g>
+</svg>`;
+    }
 
     // From your Google Form: click the three dots -> "Get pre-filled link",
     // fill in dummy values, and copy the resulting URL. Pull the form ID and
@@ -219,7 +267,7 @@
 
       [left, right].forEach(card => {
         card.className = "card";
-        card.innerHTML = `<img src="${HOUSE_IMAGE}" alt="A house (right side only)">`;
+        card.innerHTML = houseSvg({ showLeft: false, showFire: false, label: "A house (right side only)" });
       });
 
       document.getElementById("feedback").textContent = "";
@@ -238,8 +286,8 @@
       const clickedCard = (side === "left") ? left : right;
       const otherCard = (side === "left") ? right : left;
 
-      burningCard.innerHTML = `<img src="${FIRE_IMAGE}" alt="The house that is on fire">`;
-      safeCard.innerHTML = `<img src="${NO_FIRE_IMAGE}" alt="The house that is not on fire">`;
+      burningCard.innerHTML = houseSvg({ showLeft: true, showFire: true, label: "The house that is on fire" });
+      safeCard.innerHTML = houseSvg({ showLeft: true, showFire: false, label: "The house that is not on fire" });
 
       const wasCorrect = side === fireSide;
       clickedCard.classList.add(wasCorrect ? "correct" : "incorrect");
