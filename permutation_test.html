@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Word Recall (Shuffled Groups)</title>
 <style>
   :root {
@@ -13,6 +13,7 @@
     --zebra: #f6f5f4;
   }
   * { box-sizing: border-box; }
+  html, body { height: 100%; }
   body {
     margin: 0;
     font-family: "Avenir Next", Avenir, "Segoe UI", Helvetica, Arial, sans-serif;
@@ -20,72 +21,100 @@
     background: #fff;
     line-height: 1.4;
   }
-  main { max-width: 860px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
-  h1 { color: var(--maroon); font-weight: 500; font-size: 1.9rem; margin: 0 0 .25rem; }
-  .sub { color: var(--muted); margin: 0 0 1.25rem; font-size: .95rem; }
+  /* Three-part layout: fixed header, scrolling tables, fixed footer */
+  .app {
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    max-width: 860px;
+    margin: 0 auto;
+  }
+  header, footer { flex: none; background: #fff; padding: 0 1rem; }
+  header {
+    padding-top: max(.9rem, env(safe-area-inset-top));
+    padding-bottom: .6rem;
+    border-bottom: 1px solid var(--line);
+  }
+  footer {
+    padding-top: .6rem;
+    padding-bottom: max(.6rem, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--line);
+  }
+  .scroll { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 1rem; }
+
+  h1 { color: var(--maroon); font-weight: 500; font-size: 1.7rem; margin: 0 0 .2rem; }
+  .sub { color: var(--muted); margin: 0 0 .6rem; font-size: .9rem; }
   .means {
     border-left: 4px solid var(--maroon);
-    padding: .6rem 1rem;
-    margin-bottom: 1.25rem;
-    font-size: 1.15rem;
+    padding: .3rem .9rem;
+    font-size: 1.1rem;
+    display: flex; flex-wrap: wrap; gap: .15rem 1.5rem;
   }
-  .means div { margin: .15rem 0; }
   .means b { font-variant-numeric: tabular-nums; }
+
   .groups { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
-  @media (max-width: 600px) { .groups { grid-template-columns: 1fr; } }
-  h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
+  h2 { font-size: 1.05rem; margin: 0 0 .4rem; }
   h2 span { color: var(--muted); font-weight: 400; }
   table { width: 100%; border-collapse: collapse; font-size: .95rem; }
-  th { text-align: left; font-weight: 600; padding: .45rem .6rem; border-bottom: 2px solid var(--line); }
-  td { padding: .4rem .6rem; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  th { text-align: left; font-weight: 600; padding: .4rem .6rem; border-bottom: 2px solid var(--line); }
+  td { padding: .35rem .6rem; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
   tr:nth-child(even) td { background: var(--zebra); }
   tr.anchor td { background: #f7e3e4; color: var(--maroon); font-weight: 700; }
-  .task {
-    margin: 1.5rem 0;
-    padding: 1rem;
-    background: var(--zebra);
-    border-radius: 6px;
-  }
-  .task p { margin: 0 0 .75rem; }
+
+  .task { display: flex; align-items: center; gap: .75rem 1rem; flex-wrap: wrap; }
+  .task p { margin: 0; flex: 1 1 16rem; font-size: .95rem; }
   .btn {
     display: inline-block;
     background: var(--maroon);
     color: #fff;
     text-decoration: none;
-    padding: .65rem 1.1rem;
+    padding: .6rem 1.1rem;
     border-radius: 6px;
     font-weight: 600;
+    white-space: nowrap;
   }
   .btn:focus-visible { outline: 3px solid #000; outline-offset: 2px; }
-  .stamp { color: var(--muted); font-size: .8rem; margin-top: 1.5rem; }
+  .stamp { color: var(--muted); font-size: .75rem; margin: .4rem 0 0; }
   .error { color: var(--maroon); font-weight: 600; }
+
+  @media (max-width: 600px) {
+    h1 { font-size: 1.35rem; }
+    .sub { font-size: .8rem; }
+    .means { font-size: 1rem; }
+    .groups { grid-template-columns: 1fr; }
+  }
 </style>
 </head>
 <body>
-<main>
-  <h1 id="title">Usefulness vs. Vowels</h1>
-  <p class="sub" id="subtitle"></p>
+<div class="app">
+  <header>
+    <h1 id="title">Usefulness vs. Vowels</h1>
+    <p class="sub" id="subtitle"></p>
+    <div class="means" id="means"></div>
+  </header>
 
-  <div class="means" id="means"></div>
-
-  <div class="groups">
-    <section>
-      <h2>Usefulness group <span id="nU"></span></h2>
-      <table><thead><tr><th>Name</th><th>Remembered</th></tr></thead><tbody id="tU"></tbody></table>
-    </section>
-    <section>
-      <h2>Vowels group <span id="nV"></span></h2>
-      <table><thead><tr><th>Name</th><th>Remembered</th></tr></thead><tbody id="tV"></tbody></table>
-    </section>
+  <div class="scroll">
+    <div class="groups">
+      <section>
+        <h2>Usefulness group <span id="nU"></span></h2>
+        <table><thead><tr><th>Name</th><th>Remembered</th></tr></thead><tbody id="tU"></tbody></table>
+      </section>
+      <section>
+        <h2>Vowels group <span id="nV"></span></h2>
+        <table><thead><tr><th>Name</th><th>Remembered</th></tr></thead><tbody id="tV"></tbody></table>
+      </section>
+    </div>
   </div>
 
-  <div class="task" id="task">
-    <p>Find the difference in means (Usefulness mean − Vowels mean), then enter it in the form.</p>
-    <a class="btn" id="formLink" href="#" target="_blank" rel="noopener">Open the form</a>
-  </div>
-
-  <p class="stamp" id="stamp"></p>
-</main>
+  <footer>
+    <div class="task" id="task">
+      <p>Find the difference in means (Usefulness mean − Vowels mean), then enter it in the form.</p>
+      <a class="btn" id="formLink" href="#" target="_blank" rel="noopener">Open the form</a>
+    </div>
+    <p class="stamp" id="stamp"></p>
+  </footer>
+</div>
 
 <script>
 /* ===================== EDIT THESE ===================== */
@@ -300,6 +329,8 @@ function buildView(data, isReal) {
 function fillTable(id, rows) {
   const tbody = document.getElementById(id);
   tbody.innerHTML = "";
+  const isAnchor = (r) => ANCHOR && r.alias.startsWith(ANCHOR);
+  rows = [...rows.filter(isAnchor), ...rows.filter(r => !isAnchor(r))];
   for (const r of rows) {
     const tr = document.createElement("tr");
     if (ANCHOR && r.alias.startsWith(ANCHOR)) tr.className = "anchor";
