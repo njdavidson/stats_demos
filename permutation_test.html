@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Word Recall (Shuffled Groups)</title>
+<style>
+  :root {
+    --maroon: #8a1c22;
+    --ink: #1d1d1f;
+    --muted: #6b6b70;
+    --line: #e4e2e0;
+    --zebra: #f6f5f4;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: "Avenir Next", Avenir, "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    background: #fff;
+    line-height: 1.4;
+  }
+  main { max-width: 860px; margin: 0 auto; padding: 1.25rem 1rem 3rem; }
+  h1 { color: var(--maroon); font-weight: 500; font-size: 1.9rem; margin: 0 0 .25rem; }
+  .sub { color: var(--muted); margin: 0 0 1.25rem; font-size: .95rem; }
+  .means {
+    border-left: 4px solid var(--maroon);
+    padding: .6rem 1rem;
+    margin-bottom: 1.25rem;
+    font-size: 1.15rem;
+  }
+  .means div { margin: .15rem 0; }
+  .means b { font-variant-numeric: tabular-nums; }
+  .groups { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  @media (max-width: 600px) { .groups { grid-template-columns: 1fr; } }
+  h2 { font-size: 1.1rem; margin: 0 0 .5rem; }
+  h2 span { color: var(--muted); font-weight: 400; }
+  table { width: 100%; border-collapse: collapse; font-size: .95rem; }
+  th { text-align: left; font-weight: 600; padding: .45rem .6rem; border-bottom: 2px solid var(--line); }
+  td { padding: .4rem .6rem; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+  tr:nth-child(even) td { background: var(--zebra); }
+  tr.anchor td { background: #f7e3e4; color: var(--maroon); font-weight: 700; }
+  .task {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    background: var(--zebra);
+    border-radius: 6px;
+  }
+  .task p { margin: 0 0 .75rem; }
+  .btn {
+    display: inline-block;
+    background: var(--maroon);
+    color: #fff;
+    text-decoration: none;
+    padding: .65rem 1.1rem;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .btn:focus-visible { outline: 3px solid #000; outline-offset: 2px; }
+  .stamp { color: var(--muted); font-size: .8rem; margin-top: 1.5rem; }
+  .error { color: var(--maroon); font-weight: 600; }
+</style>
+</head>
+<body>
+<main>
+  <h1 id="title">Usefulness vs. Vowels</h1>
+  <p class="sub" id="subtitle"></p>
+
+  <div class="means" id="means"></div>
+
+  <div class="groups">
+    <section>
+      <h2>Usefulness group <span id="nU"></span></h2>
+      <table><thead><tr><th>Name</th><th>Remembered</th></tr></thead><tbody id="tU"></tbody></table>
+    </section>
+    <section>
+      <h2>Vowels group <span id="nV"></span></h2>
+      <table><thead><tr><th>Name</th><th>Remembered</th></tr></thead><tbody id="tV"></tbody></table>
+    </section>
+  </div>
+
+  <div class="task" id="task">
+    <p>Find the difference in means (Usefulness mean − Vowels mean), then enter it in the form.</p>
+    <a class="btn" id="formLink" href="#" target="_blank" rel="noopener">Open the form</a>
+  </div>
+
+  <p class="stamp" id="stamp"></p>
+</main>
+
+<script>
+/* ===================== EDIT THESE ===================== */
+
+// Your Google Form link.
+const FORM_URL = "https://forms.gle/REPLACE_ME";
+
+// Rows whose alias starts with this get highlighted (set to "" to turn off).
+const ANCHOR = "Nick";
+
+// Paste two columns straight from the response sheet: remembered, task
+// (select both columns in Sheets, copy, paste below; tabs or commas both work).
+// Optional third column: a name to use for that row (e.g. Nick).
+// Every other row gets a made-up first name from NAMES.
+const DATA = `
+3	Number of vowels	Nick
+3	Number of vowels
+3	Number of vowels
+7	Usefulness on a deserted island
+7	Usefulness on a deserted island
+7	Usefulness on a deserted island
+2	Number of vowels
+5	Number of vowels
+2	Number of vowels
+8	Usefulness on a deserted island
+2	Number of vowels
+1	Number of vowels
+6	Usefulness on a deserted island
+1	Number of vowels
+7	Number of vowels
+8	Usefulness on a deserted island
+3	Number of vowels
+8	Usefulness on a deserted island
+2	Number of vowels
+8	Usefulness on a deserted island
+7	Usefulness on a deserted island
+4	Usefulness on a deserted island
+5	Usefulness on a deserted island
+5	Usefulness on a deserted island
+6	Number of vowels
+6	Usefulness on a deserted island
+6	Number of vowels
+3	Number of vowels
+10	Usefulness on a deserted island
+2	Number of vowels
+2	Number of vowels
+7	Usefulness on a deserted island
+5	Number of vowels
+3	Number of vowels
+2	Number of vowels
+3	Number of vowels
+7	Usefulness on a deserted island
+8	Usefulness on a deserted island
+10	Usefulness on a deserted island
+6	Number of vowels
+3	Number of vowels
+7	Number of vowels
+6	Number of vowels
+7	Usefulness on a deserted island
+6	Usefulness on a deserted island
+5	Number of vowels
+6	Usefulness on a deserted island
+2	Number of vowels
+10	Usefulness on a deserted island
+8	Usefulness on a deserted island
+3	Number of vowels
+7	Usefulness on a deserted island
+8	Usefulness on a deserted island
+8	Usefulness on a deserted island
+4	Number of vowels
+4	Number of vowels
+3	Number of vowels
+2	Number of vowels
+3	Number of vowels
+5	Usefulness on a deserted island
+7	Usefulness on a deserted island
+7	Usefulness on a deserted island
+4	Number of vowels
+5	Number of vowels
+4	Number of vowels
+5	Number of vowels
+7	Usefulness on a deserted island
+7	Usefulness on a deserted island
+5	Number of vowels
+6	Number of vowels
+5	Number of vowels
+3	Number of vowels
+8	Usefulness on a deserted island
+7	Number of vowels
+6	Number of vowels
+8	Usefulness on a deserted island
+3	Number of vowels
+5	Number of vowels
+6	Number of vowels
+4	Number of vowels
+7	Usefulness on a deserted island
+5	Number of vowels
+5	Number of vowels
+6	Usefulness on a deserted island
+2	Number of vowels
+7	Usefulness on a deserted island
+7	Usefulness on a deserted island
+7	Usefulness on a deserted island
+10	Usefulness on a deserted island
+4	Number of vowels
+3	Number of vowels
+4	Number of vowels
+8	Usefulness on a deserted island
+5	Usefulness on a deserted island
+1	Number of vowels
+0	Usefulness on a deserted island
+8	Number of vowels
+6	Usefulness on a deserted island
+9	Usefulness on a deserted island
+7	Usefulness on a deserted island
+8	Usefulness on a deserted island
+8	Usefulness on a deserted island
+6	Number of vowels
+2	Number of vowels
+7	Usefulness on a deserted island
+8	Usefulness on a deserted island
+3	Number of vowels
+9	Usefulness on a deserted island
+7	Usefulness on a deserted island
+4	Number of vowels
+7	Usefulness on a deserted island
+6	Usefulness on a deserted island
+5	Usefulness on a deserted island
+7	Number of vowels
+4	Usefulness on a deserted island
+3	Number of vowels
+6	Number of vowels
+7	Usefulness on a deserted island
+8	Usefulness on a deserted island
+`;
+
+// Made-up names, assigned in row order (so each person keeps the same name on every shuffle).
+const NAMES = [
+  "Abigail","Addison","Aiden","Alice","Andrew","Aubrey","Ava","Bella","Benjamin","Brianna",
+  "Caleb","Cameron","Charlotte","Chloe","Daniel","Dylan","Eli","Elijah","Ella","Emma",
+  "Ethan","Evelyn","Gabriel","Grace","Hannah","Harper","Henry","Isaac","Isabella","Jack",
+  "Jacob","James","Julia","Kayla","Leah","Liam","Lily","Logan","Lucas","Luke",
+  "Madison","Mary","Mason","Maya","Mia","Nathan","Noah","Olivia","Owen","Quinn",
+  "Riley","Ryan","Samuel","Sarah","Scott","Sofia","Steve","Taylor","Tyler","Violet",
+  "William","Wyatt","Zoe","Zachary","Nora","Levi","Hazel","Miles","Ruby","Jonah",
+  "Adam","Amelia","Anna","Austin","Avery","Blake","Brooke","Carter","Claire","Cole",
+  "Colin","Delia","Derek","Elena","Eric","Faith","Felix","Fiona","Gavin","Gianna",
+  "Hailey","Hudson","Ian","Ivy","Jade","Jasmine","Jordan","Josie","Kai","Kate",
+  "Kendall","Laila","Lauren","Leo","Lucy","Marcus","Megan","Molly","Morgan","Naomi",
+  "Nolan","Paige","Parker","Peyton","Reese","Rosa","Sadie","Seth","Sophie","Theo",
+  "Tessa","Trevor","Vivian","Wesley","Willa","Xavier","Yara","Zara","Brady","Clara"
+];
+
+/* ====================================================== */
+
+// Same logic as Code.gs, run in the browser instead.
+// Usage: index.html (shuffled, default)  |  index.html?mode=real (actual groups)
+
+function parseData(text) {
+  const out = [];
+  let nameIdx = 0;
+  for (const line of text.trim().split(/\r?\n/)) {
+    const cols = line.split(/\t|,/).map(s => s.trim());
+    const remembered = Number(cols[0]);
+    if (cols[0] === "" || !Number.isFinite(remembered)) continue; // skips header/blank rows
+    const isVowels = /vowel/i.test(cols[1] || "");
+    const task = isVowels ? "Vowels" : "Useful";
+    const name = cols[2] || NAMES[nameIdx++] || ("Student " + nameIdx);
+    out.push({ alias: `${name} (${isVowels ? "V" : "U"})`, remembered, task });
+  }
+  return out;
+}
+
+function shuffleInPlace(arr) {
+  // Fisher–Yates using crypto randomness when available
+  const rand = (n) => {
+    if (window.crypto && crypto.getRandomValues) {
+      const buf = new Uint32Array(1);
+      crypto.getRandomValues(buf);
+      return buf[0] % n;
+    }
+    return Math.floor(Math.random() * n);
+  };
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = rand(i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+
+const mean = (nums) => nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : NaN;
+const round1 = (x) => Number.isFinite(x) ? Math.round(x * 10) / 10 : "";
+
+function buildView(data, isReal) {
+  const nUseful = data.filter(r => r.task === "Useful").length;
+  let usefulness, vowels;
+  if (isReal) {
+    usefulness = data.filter(r => r.task === "Useful");
+    vowels = data.filter(r => r.task !== "Useful");
+  } else {
+    const rows = data.slice();
+    shuffleInPlace(rows);
+    usefulness = rows.slice(0, nUseful);
+    vowels = rows.slice(nUseful);
+  }
+  return {
+    usefulness, vowels,
+    meanUseful: round1(mean(usefulness.map(r => r.remembered))),
+    meanVowels: round1(mean(vowels.map(r => r.remembered)))
+  };
+}
+
+function fillTable(id, rows) {
+  const tbody = document.getElementById(id);
+  tbody.innerHTML = "";
+  for (const r of rows) {
+    const tr = document.createElement("tr");
+    if (ANCHOR && r.alias.startsWith(ANCHOR)) tr.className = "anchor";
+    const a = document.createElement("td"); a.textContent = r.alias;
+    const b = document.createElement("td"); b.textContent = r.remembered;
+    tr.append(a, b);
+    tbody.appendChild(tr);
+  }
+}
+
+(function main() {
+  const mode = (new URLSearchParams(location.search).get("mode") || "shuffle").toLowerCase();
+  const isReal = mode === "real";
+  const data = parseData(DATA);
+
+  if (!data.length) {
+    document.getElementById("means").innerHTML = '<span class="error">No data found. Paste the data into the page.</span>';
+    return;
+  }
+
+  const v = buildView(data, isReal);
+
+  document.title = isReal ? "Word Recall (Real Groups)" : "Word Recall (Shuffled Groups)";
+  document.getElementById("subtitle").textContent = isReal
+    ? "The actual groups from the experiment."
+    : "Your shuffled groups. Each person's score stayed the same; only the group labels were shuffled.";
+  document.getElementById("means").innerHTML =
+    `<div>Usefulness mean: <b>${v.meanUseful}</b></div><div>Vowels mean: <b>${v.meanVowels}</b></div>`;
+  document.getElementById("nU").textContent = `(n = ${v.usefulness.length})`;
+  document.getElementById("nV").textContent = `(n = ${v.vowels.length})`;
+  fillTable("tU", v.usefulness);
+  fillTable("tV", v.vowels);
+
+  if (isReal) document.getElementById("task").style.display = "none";
+  document.getElementById("formLink").href = FORM_URL;
+  document.getElementById("stamp").textContent = `Generated ${new Date().toLocaleString()}`;
+})();
+</script>
+</body>
+</html>
