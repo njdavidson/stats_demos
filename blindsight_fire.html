@@ -103,6 +103,10 @@
       font-size: 20px;
       margin: 20px 0;
     }
+    .status { font-size: 18px; margin: 16px 0; padding: 12px; border-radius: 10px; }
+    .status.saving { background: #fff4d6; color: #6b4e00; }
+    .status.saved { background: #e3f7e6; color: #187a2f; font-weight: bold; font-size: 20px; }
+    .status.error { background: #fde3e3; color: #b00020; }
   </style>
 </head>
 <body>
@@ -136,7 +140,8 @@
   <div id="screen-summary" style="display:none;">
     <h1>All done!</h1>
     <p class="summary" id="summaryText"></p>
-    <p id="submitStatus">Submitting your results...</p>
+    <p id="submitStatus" class="status saving">Saving your results… please keep this page open.</p>
+    <button id="retryButton" style="display:none;" onclick="submitAttempt(1)">Retry</button>
   </div>
 
   <script>
@@ -269,22 +274,62 @@
       submitResults();
     }
 
+    // ---- Submission ----
+    // fetch with keepalive:true survives the tab closing or the phone locking
+    // (the same mechanism sendBeacon uses), but unlike sendBeacon it also
+    // tells us when Google's server has responded. So students are told to
+    // keep the page open until then, and only then told they can close it.
+    let pendingBody = null;
+    const MAX_ATTEMPTS = 4;
+    const ATTEMPT_TIMEOUT_MS = 12000;
+
+    function setStatus(text, kind) {
+      const el = document.getElementById("submitStatus");
+      el.textContent = text;
+      el.className = "status " + kind;
+    }
+
     function submitResults() {
       const body = new URLSearchParams();
       body.append(NAME_ENTRY_ID, studentName);
       body.append(USERNAME_ENTRY_ID, username);
       body.append(SCORE_ENTRY_ID, score);
+      pendingBody = body.toString();
+      submitAttempt(1);
+    }
 
-      // no-cors means the browser won't let us read the response, so we can't
-      // confirm delivery from here. Check the response sheet to verify.
+    function submitAttempt(attempt) {
+      document.getElementById("retryButton").style.display = "none";
+      setStatus("Saving your results… please keep this page open.", "saving");
+
+      // Give up on a single attempt if the classroom wifi leaves it hanging.
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), ATTEMPT_TIMEOUT_MS);
+
       fetch(FORM_SUBMIT_URL, {
         method: "POST",
         mode: "no-cors",
+        keepalive: true,
         headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: body.toString()
-      }).catch(() => { /* nothing useful to do without a response */ });
-
-      document.getElementById("submitStatus").textContent = "Results submitted — you're all set!";
+        body: pendingBody,
+        signal: controller.signal
+      })
+        .then(() => {
+          clearTimeout(timer);
+          setStatus("✅ Saved! You can close this tab now.", "saved");
+        })
+        .catch(() => {
+          clearTimeout(timer);
+          if (attempt >= MAX_ATTEMPTS) {
+            setStatus("Couldn't save your results. Check your wifi and tap Retry. " +
+                      "If it still won't save, show this screen to your instructor.", "error");
+            document.getElementById("retryButton").style.display = "inline-block";
+            return;
+          }
+          setStatus("Connection hiccup — trying again… please keep this page open.", "saving");
+          const delay = Math.min(1000 * Math.pow(2, attempt - 1), 8000);
+          setTimeout(() => submitAttempt(attempt + 1), delay);
+        });
     }
   </script>
 </body>
