@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pasta Palace — Your Random Sample</title>
+<style>
+  :root { --red:#9b2c2c; --cream:#fdf8ef; --ink:#2b2118; --cheese:#f2c94c; --muted:#8a7b6a; }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family:system-ui,-apple-system,"Segoe UI",sans-serif; background:var(--cream); color:var(--ink); }
+  header { background:var(--red); color:#fff; text-align:center; padding:18px 12px 14px; }
+  header h1 { margin:0; font-size:1.6rem; letter-spacing:.02em; }
+  header p { margin:4px 0 0; opacity:.9; font-size:.95rem; }
+  main { max-width:520px; margin:0 auto; padding:18px 16px 40px; }
+  .result { background:#fff; border:2px solid var(--red); border-radius:14px; padding:18px; text-align:center; }
+  .big { font-size:4.2rem; font-weight:800; line-height:1; color:var(--red); }
+  .big span { font-size:1.6rem; color:var(--muted); font-weight:600; }
+  .label { margin-top:8px; font-size:1.05rem; }
+  .grid { display:grid; grid-template-columns:repeat(8,1fr); gap:6px; margin:18px 0 6px; }
+  .cell { aspect-ratio:1; border-radius:8px; display:flex; align-items:center; justify-content:center;
+          font-size:1.35rem; background:#eee6d8; }
+  .cell.yes { background:var(--cheese); }
+  .legend { display:flex; justify-content:center; gap:18px; font-size:.9rem; color:var(--muted); }
+  .note { margin-top:18px; padding:12px 14px; background:#fff3cd; border-radius:10px; font-size:.95rem; }
+  .note.repeat { background:#fde2e1; }
+  footer { text-align:center; font-size:.8rem; color:var(--muted); margin-top:20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🍝 Pasta Palace</h1>
+  <p>Your random sample of 40 patrons</p>
+</header>
+<main>
+  <div class="result">
+    <div class="big" id="count">–<span> / 40</span></div>
+    <div class="label">patrons asked for <strong>prominent Parmesan</strong></div>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <div class="legend"><span>🧀 = prominent Parmesan</span><span>🍝 = no thanks</span></div>
+
+  <div class="note" id="note">Write this number on your worksheet. This is <strong>your</strong> sample, so use it for every part of the activity.</div>
+
+  <footer>Math 104 · Confidence intervals for a proportion</footer>
+</main>
+
+<script>
+  // ---- Settings ----
+  const N = 40;          // sample size
+  const P = 0.35;        // true population proportion (keep this secret!)
+  const KEY = "pastaPalaceSample_v1";  // change to give everyone a fresh sample
+  // ------------------
+
+  // Add ?reset to the URL to clear a saved sample on this device.
+  function load() {
+    try {
+      if (new URLSearchParams(location.search).has("reset")) localStorage.removeItem(KEY);
+      return JSON.parse(localStorage.getItem(KEY));
+    } catch (e) { return null; }
+  }
+  function save(s) { try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+
+  function drawSample() {
+    const u = new Uint32Array(N);
+    crypto.getRandomValues(u);
+    return Array.from(u, x => (x / 4294967296) < P ? 1 : 0);
+  }
+
+  let sample = load();
+  const repeat = Array.isArray(sample) && sample.length === N;
+  if (!repeat) { sample = drawSample(); save(sample); }
+
+  const count = sample.reduce((a, b) => a + b, 0);
+  document.getElementById("count").firstChild.textContent = count;
+
+  const grid = document.getElementById("grid");
+  sample.forEach(v => {
+    const d = document.createElement("div");
+    d.className = "cell" + (v ? " yes" : "");
+    d.textContent = v ? "🧀" : "🍝";
+    grid.appendChild(d);
+  });
+
+  if (repeat) {
+    const n = document.getElementById("note");
+    n.classList.add("repeat");
+    n.innerHTML = "You've already drawn your sample, so here it is again. Use this number on your worksheet.";
+  }
+</script>
+</body>
+</html>
