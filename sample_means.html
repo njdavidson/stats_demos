@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pasta Palace – Your Sample</title>
+<style>
+  body { font-family: Arial, Helvetica, sans-serif; max-width: 560px; margin: 24px auto; padding: 0 18px; color: #222; }
+  h1 { font-size: 26px; color: #8b1a1a; margin-bottom: 6px; }
+  p { font-size: 19px; line-height: 1.4; }
+  .vals { font-size: 40px; font-weight: bold; letter-spacing: 1px; margin: 14px 0 20px; }
+  table { font-size: 22px; border-collapse: collapse; }
+  td { padding: 6px 14px 6px 0; }
+  td.v { font-weight: bold; }
+  .btn { display: inline-block; margin-top: 24px; font-size: 22px; padding: 14px 22px; background: #1f6fb2;
+         color: #fff; border-radius: 8px; text-decoration: none; }
+  .small { font-size: 16px; color: #666; margin-top: 28px; }
+</style>
+</head>
+<body>
+<h1>Parmesan Penne Pile-Up</h1>
+<p>A random sample of <span id="n"></span> plates was taken. Noodles on each plate:</p>
+<div class="vals" id="vals"></div>
+<table>
+  <tr><td>Sample mean</td><td class="v" id="mean"></td></tr>
+  <tr><td>Sample standard deviation</td><td class="v" id="sd"></td></tr>
+</table>
+<div id="submit"></div>
+<p class="small">Write these down before leaving this page — reloading gives a new sample.</p>
+
+<script>
+// ---- settings (keep N, MU, SIGMA in sync with Code.gs) ----
+const N = 4;
+const MU = 70;
+const SIGMA = 3;
+// Optional: a Google Form pre-filled link with MEAN and SD typed into the two answer boxes
+// (Form editor → ⋮ → Get pre-filled link). Leave '' to hide the submit button.
+const FORM_PREFILL_URL = '';
+
+function randNormal() {
+  let u = 0;
+  while (u === 0) u = Math.random();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random());
+}
+
+const xs = Array.from({ length: N }, () => Math.round(MU + SIGMA * randNormal()));
+const mean = xs.reduce((a, b) => a + b, 0) / N;
+const sd = Math.sqrt(xs.reduce((a, x) => a + (x - mean) ** 2, 0) / (N - 1));
+
+document.getElementById('n').textContent = N;
+document.getElementById('vals').textContent = xs.join(', ');
+document.getElementById('mean').textContent = mean.toFixed(3);
+document.getElementById('sd').textContent = sd.toFixed(3);
+
+if (FORM_PREFILL_URL) {
+  const url = FORM_PREFILL_URL.replace('MEAN', mean.toFixed(3)).replace('SD', sd.toFixed(3));
+  document.getElementById('submit').innerHTML =
+    '<a class="btn" href="' + url + '" target="_blank">Submit my sample</a>';
+}
+</script>
+</body>
+</html>
